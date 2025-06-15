@@ -110,3 +110,5 @@ Desktop.ini
 
 # Ignore all .pyc files (redundant, but explicit)
 *.pyc
+
+staticfiles/ 
