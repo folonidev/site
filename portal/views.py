@@ -1,4 +1,11 @@
 from django.http import HttpResponse
+from django.shortcuts import render
 
 def home(request):
-    return HttpResponse("<h1>Olá! meu nome é Gabriel Foloni</h1>")
+    return render(request, 'index.html')
+
+def blog(request):
+    return render(request, 'blog.html')
+
+def portfolio(request):
+    return render(request, 'portfolio.html')
