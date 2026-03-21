@@ -1,0 +1,227 @@
+{% extends 'feiticos/admin/base_admin.html' %}
+
+{% block admin_title %}Detalhes do Feitiço #{{ feitico.id }}{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-2">
+                🔮 Detalhes do Feitiço
+            </h1>
+            <p class="text-purple-300">Número de Confirmação: #{{ feitico.id|stringformat:"06d" }}</p>
+        </div>
+        <a 
+            href="{% url 'admin_listar' %}"
+            class="px-6 py-2 bg-purple-600/50 hover:bg-purple-600/70 text-purple-200 rounded-lg transition"
+        >
+            ← Voltar
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Coluna Principal -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Dados do Cliente -->
+            <div class="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border border-blue-500/30 rounded-lg p-6">
+                <h2 class="text-xl font-bold text-blue-200 mb-4">👤 Dados do Cliente</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-blue-400 text-sm">Nome</p>
+                        <p class="text-white font-semibold">{{ feitico.nome }}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-blue-400 text-sm">Email</p>
+                            <p class="text-white font-semibold text-sm">{{ feitico.email }}</p>
+                        </div>
+                        <div>
+                            <p class="text-blue-400 text-sm">Telefone</p>
+                            <p class="text-white font-semibold">{{ feitico.telefone }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dados do Feitiço -->
+            <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-lg p-6">
+                <h2 class="text-xl font-bold text-purple-200 mb-4">🪄 Dados do Feitiço</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-purple-400 text-sm">Tipo de Feitiço</p>
+                        <p class="text-white font-semibold text-lg">{{ feitico.tipo_feitico }}</p>
+                    </div>
+                    
+                    {% if feitico.descricao %}
+                        <div>
+                            <p class="text-purple-400 text-sm">Descrição</p>
+                            <p class="text-white">{{ feitico.descricao }}</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-purple-400 text-sm">Data Agendada</p>
+                            <p class="text-white font-semibold">{{ feitico.data_agendamento|date:"d/m/Y" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-purple-400 text-sm">Hora Agendada</p>
+                            <p class="text-white font-semibold">{{ feitico.hora_agendamento|time:"H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informações de Pagamento -->
+            <div class="bg-gradient-to-br from-green-900/30 to-emerald-900/30 border border-green-500/30 rounded-lg p-6">
+                <h2 class="text-xl font-bold text-green-200 mb-4">💳 Informações de Pagamento</h2>
+                
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-green-400 text-sm">Valor</p>
+                            <p class="text-white font-bold text-xl">R$ {{ feitico.valor|floatformat:2 }}</p>
+                        </div>
+                        <div>
+                            <p class="text-green-400 text-sm">Data do Pagamento</p>
+                            <p class="text-white font-semibold">
+                                {% if feitico.data_pagamento %}
+                                    {{ feitico.data_pagamento|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timestamps -->
+            <div class="bg-black/20 border border-purple-500/20 rounded-lg p-6">
+                <h3 class="text-sm font-semibold text-purple-300 mb-3">📝 Informações do Sistema</h3>
+                <div class="space-y-2 text-xs text-purple-400">
+                    <p><strong>Criado em:</strong> {{ feitico.criado_em|date:"d/m/Y H:i:s" }}</p>
+                    <p><strong>Atualizado em:</strong> {{ feitico.atualizado_em|date:"d/m/Y H:i:s" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar - Status -->
+        <div class="space-y-6">
+            <!-- Atualizar Status -->
+            <div class="bg-gradient-to-br from-orange-900/30 to-red-900/30 border border-orange-500/30 rounded-lg p-6">
+                <h3 class="text-lg font-bold text-orange-200 mb-4">⚙️ Atualizar Status</h3>
+                
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <div>
+                        <label class="block text-orange-300 text-sm mb-2">Status Atual</label>
+                        <select name="status" class="w-full px-3 py-2 bg-orange-900/20 border border-orange-500/30 rounded-lg text-white">
+                            {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if feitico.status == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <button 
+                        type="submit"
+                        class="w-full py-2 px-4 bg-orange-600/50 hover:bg-orange-600/70 text-orange-200 rounded-lg transition font-semibold"
+                    >
+                        Atualizar
+                    </button>
+                </form>
+
+                <div class="mt-4 p-3 bg-black/20 rounded-lg border border-orange-500/20">
+                    <p class="text-orange-300 text-xs">
+                        <strong>Status Atual:</strong><br>
+                        <span class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold
+                            {% if feitico.status == 'pendente' %}bg-yellow-500/20 text-yellow-300
+                            {% elif feitico.status == 'pago' %}bg-purple-500/20 text-purple-300
+                            {% elif feitico.status == 'realizado' %}bg-green-500/20 text-green-300
+                            {% else %}bg-red-500/20 text-red-300
+                            {% endif %}
+                        ">
+                            {{ feitico.get_status_display }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Ações Rápidas -->
+            <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-lg p-6">
+                <h3 class="text-lg font-bold text-purple-200 mb-4">🎯 Ações Rápidas</h3>
+                
+                <div class="space-y-2">
+                    <button 
+                        onclick="copiarEmail()"
+                        class="w-full py-2 px-4 bg-purple-600/50 hover:bg-purple-600/70 text-purple-200 rounded-lg transition text-sm"
+                    >
+                        📧 Copiar Email
+                    </button>
+                    <button 
+                        onclick="copiarTelefone()"
+                        class="w-full py-2 px-4 bg-purple-600/50 hover:bg-purple-600/70 text-purple-200 rounded-lg transition text-sm"
+                    >
+                        📱 Copiar Telefone
+                    </button>
+                    <button 
+                        onclick="imprimirDetalhes()"
+                        class="w-full py-2 px-4 bg-purple-600/50 hover:bg-purple-600/70 text-purple-200 rounded-lg transition text-sm"
+                    >
+                        🖨️ Imprimir
+                    </button>
+                </div>
+            </div>
+
+            <!-- Resumo Visual -->
+            <div class="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-indigo-500/30 rounded-lg p-6">
+                <h3 class="text-lg font-bold text-indigo-200 mb-4">📊 Resumo</h3>
+                
+                <div class="space-y-3 text-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-indigo-400">ID:</span>
+                        <span class="text-white font-mono">#{{ feitico.id|stringformat:"06d" }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-indigo-400">Valor:</span>
+                        <span class="text-white font-bold">R$ {{ feitico.valor|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-indigo-400">Dias até:</span>
+                        <span class="text-white font-semibold">
+                            {% now "Y-m-d" as today %}
+                            {% if feitico.data_agendamento > today %}
+                                {{ feitico.data_agendamento|add:"-1d"|timeuntil:today }} dias
+                            {% else %}
+                                Hoje ou passado
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copiarEmail() {
+        navigator.clipboard.writeText('{{ feitico.email }}');
+        alert('Email copiado!');
+    }
+
+    function copiarTelefone() {
+        navigator.clipboard.writeText('{{ feitico.telefone }}');
+        alert('Telefone copiado!');
+    }
+
+    function imprimirDetalhes() {
+        window.print();
+    }
+</script>
+{% endblock %}

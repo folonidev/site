@@ -1,0 +1,51 @@
+{% extends 'feiticos/base.html' %}
+
+{% block title %}{% block admin_title %}Painel Administrativo{% endblock %} - Feitiçaria Online{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-gradient-to-b from-purple-900/50 to-black/50 border-r border-purple-500/30 p-6 fixed h-screen overflow-y-auto">
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                🔮 Admin
+            </h2>
+            <p class="text-purple-400 text-sm">Painel de Controle</p>
+        </div>
+
+        <nav class="space-y-2">
+            <a 
+                href="{% url 'admin_dashboard' %}"
+                class="block px-4 py-3 rounded-lg {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-purple-600/50 border border-purple-500/50 text-purple-200{% else %}text-purple-300 hover:bg-purple-900/30{% endif %} transition"
+            >
+                📊 Dashboard
+            </a>
+            <a 
+                href="{% url 'admin_listar' %}"
+                class="block px-4 py-3 rounded-lg {% if request.resolver_match.url_name == 'admin_listar' %}bg-purple-600/50 border border-purple-500/50 text-purple-200{% else %}text-purple-300 hover:bg-purple-900/30{% endif %} transition"
+            >
+                📋 Todos os Feitiços
+            </a>
+            <a 
+                href="/admin/"
+                class="block px-4 py-3 rounded-lg text-purple-300 hover:bg-purple-900/30 transition"
+            >
+                ⚙️ Django Admin
+            </a>
+        </nav>
+
+        <div class="mt-8 pt-8 border-t border-purple-500/30">
+            <p class="text-purple-400 text-xs mb-3">Usuário</p>
+            <p class="text-white font-semibold">{{ request.user.username }}</p>
+            <a href="/admin/logout/" class="block mt-4 px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-300 rounded-lg transition text-center text-sm">
+                Sair
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-64 flex-1 p-8">
+        {% block admin_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}

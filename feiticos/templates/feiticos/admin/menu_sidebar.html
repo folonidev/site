@@ -1,0 +1,17 @@
+<!-- Menu lateral PADRÃO - Incluir em todas as páginas do admin -->
+<div class="lg:col-span-1">
+    <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 backdrop-blur-md border border-purple-500/30 rounded-xl p-4 space-y-2">
+        <a href="{% url 'admin_painel' %}" class="block px-4 py-3 rounded-lg hover:bg-purple-800 transition {% if request.resolver_match.url_name == 'admin_painel' %}bg-purple-600 text-white font-semibold{% else %}bg-purple-900/50 text-purple-200{% endif %}">
+            📊 Dashboard
+        </a>
+        <a href="{% url 'admin_feiticos' %}" class="block px-4 py-3 rounded-lg hover:bg-purple-800 transition {% if request.resolver_match.url_name == 'admin_feiticos' %}bg-purple-600 text-white font-semibold{% else %}bg-purple-900/50 text-purple-200{% endif %}">
+            🪄 Agendamentos
+        </a>
+        <a href="{% url 'admin_gerenciar_feiticos' %}" class="block px-4 py-3 rounded-lg hover:bg-purple-800 transition {% if request.resolver_match.url_name == 'admin_gerenciar_feiticos' %}bg-purple-600 text-white font-semibold{% else %}bg-purple-900/50 text-purple-200{% endif %}">
+            ✨ Gerenciar Feitiços
+        </a>
+        <a href="{% url 'admin_disponibilidade' %}" class="block px-4 py-3 rounded-lg hover:bg-purple-800 transition {% if request.resolver_match.url_name == 'admin_disponibilidade' %}bg-purple-600 text-white font-semibold{% else %}bg-purple-900/50 text-purple-200{% endif %}">
+            ⏰ Indisponibilidade
+        </a>
+    </div>
+</div>

@@ -1,0 +1,101 @@
+{% extends 'feiticos/base.html' %}
+
+{% block title %}Feitiços - Painel Administrativo{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-purple-950 via-black to-pink-950">
+    <!-- Navbar -->
+    <nav class="bg-black/50 backdrop-blur-md border-b border-purple-500/30 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <span class="text-3xl">🔮</span>
+                <div>
+                    <h1 class="text-xl font-bold text-purple-200">Feitiçaria Online</h1>
+                    <p class="text-xs text-purple-400">Painel Administrativo</p>
+                </div>
+            </div>
+            <a href="{% url 'admin_logout' %}" class="px-4 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-300 rounded-lg transition text-sm font-semibold">
+                Sair
+            </a>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {% include 'feiticos/admin/menu_sidebar.html' %}
+
+            <!-- Conteúdo principal -->
+            <div class="lg:col-span-4">
+                <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-xl p-6">
+                    <h2 class="text-2xl font-bold text-purple-200 mb-6">🪄 Gerenciar Feitiços</h2>
+
+                    <!-- Filtros -->
+                    <div class="mb-6 flex flex-wrap gap-2">
+                        <a href="{% url 'admin_feiticos' %}" class="px-4 py-2 rounded-lg transition {% if not status_filter %}bg-purple-600 text-white{% else %}bg-purple-900/50 text-purple-200 hover:bg-purple-800{% endif %}">
+                            Todos
+                        </a>
+                        {% for status_code, status_name in status_choices %}
+                            <a href="?status={{ status_code }}" class="px-4 py-2 rounded-lg transition {% if status_filter == status_code %}bg-purple-600 text-white{% else %}bg-purple-900/50 text-purple-200 hover:bg-purple-800{% endif %}">
+                                {{ status_name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Tabela de Feitiços -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-purple-500/30">
+                                    <th class="px-4 py-3 text-left text-purple-300 font-semibold">Nome</th>
+                                    <th class="px-4 py-3 text-left text-purple-300 font-semibold">Feitiço</th>
+                                    <th class="px-4 py-3 text-left text-purple-300 font-semibold">Data/Hora</th>
+                                    <th class="px-4 py-3 text-left text-purple-300 font-semibold">Valor</th>
+                                    <th class="px-4 py-3 text-left text-purple-300 font-semibold">Status</th>
+                                    <th class="px-4 py-3 text-left text-purple-300 font-semibold">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-purple-500/20">
+                                {% for feitico in feiticos %}
+                                    <tr class="hover:bg-purple-900/20 transition">
+                                        <td class="px-4 py-3 text-purple-200">{{ feitico.nome }}</td>
+                                        <td class="px-4 py-3 text-purple-200">{{ feitico.tipo_feitico }}</td>
+                                        <td class="px-4 py-3 text-purple-300 text-xs">
+                                            {{ feitico.data_agendamento|date:"d/m/Y" }}<br>
+                                            {{ feitico.hora_agendamento|time:"H:i" }}
+                                        </td>
+                                        <td class="px-4 py-3 text-purple-200 font-semibold">R$ {{ feitico.valor|floatformat:2 }}</td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                                {% if feitico.status == 'pendente' %}bg-yellow-600/30 text-yellow-300
+                                                {% elif feitico.status == 'pago' %}bg-green-600/30 text-green-300
+                                                {% elif feitico.status == 'realizado' %}bg-blue-600/30 text-blue-300
+                                                {% else %}bg-red-600/30 text-red-300
+                                                {% endif %}">
+                                                {{ feitico.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 space-x-2">
+                                            <a href="{% url 'admin_editar_feitico' feitico.pk %}" class="text-purple-400 hover:text-purple-300 transition font-semibold">
+                                                ✏️ Editar
+                                            </a>
+                                            <a href="{% url 'admin_deletar_feitico' feitico.pk %}" class="text-red-400 hover:text-red-300 transition font-semibold">
+                                                🗑️ Deletar
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="px-4 py-8 text-center text-purple-400">
+                                            Nenhum feitiço encontrado
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
