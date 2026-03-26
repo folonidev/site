@@ -1,277 +1,68 @@
 {% extends 'feiticos/base.html' %}
 
-{% block title %}Agendamento de Feitiços - Feitiçaria Online{% endblock %}
+{% block title %}Feitiçaria Online - Escolha seu Serviço{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex flex-col items-center justify-center p-4 py-12">
+<div class="min-h-screen flex flex-col items-center justify-center p-4 py-12 bg-gradient-to-br from-purple-950 via-black to-pink-950">
     <!-- Header -->
-    <div class="text-center mb-12">
-        <h1 class="text-6xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+    <div class="text-center mb-16">
+        <h1 class="text-6xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
             ✨ Feitiçaria Online ✨
         </h1>
-        <p class="text-xl text-purple-300">Agende seus feitiços com segurança e magia</p>
+        <p class="text-xl text-purple-300 mb-8">Bem-vindo ao nosso templo mágico</p>
+        
+        <!-- Informações de Atendimento -->
+        <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-xl p-6 max-w-2xl mx-auto mb-12">
+            <h2 class="text-lg font-semibold text-purple-200 mb-4">🕐 Horários de Atendimento</h2>
+            <div class="space-y-2 text-purple-300">
+                <p><strong>Segunda a Quinta:</strong> 20:00 - 00:00</p>
+                <p><strong>Sexta:</strong> 13:00 - 16:00</p>
+            </div>
+        </div>
     </div>
 
-    <!-- Container principal -->
-    <div class="w-full max-w-3xl">
-        <!-- Card do formulário -->
-        <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 backdrop-blur-md border border-purple-500/30 rounded-2xl p-8 shadow-2xl">
-            
-            <!-- Ícone decorativo -->
-            <div class="text-center mb-6">
-                <div class="inline-block text-5xl">🔮</div>
-            </div>
-
-            <h2 class="text-3xl font-bold text-center mb-8 text-purple-200">
-                Solicite Seu Feitiço
-            </h2>
-
-            <form method="post" action="{% url 'agendar_feitico' %}" class="space-y-6" id="formFeitico">
-                {% csrf_token %}
-
-                <!-- Seção 1: Dados Pessoais -->
-                <div class="bg-black/20 rounded-lg p-6 border border-purple-500/20">
-                    <h3 class="text-lg font-semibold text-purple-300 mb-4">📋 Seus Dados</h3>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-purple-200 mb-2">
-                                Nome Completo *
-                            </label>
-                            <input 
-                                type="text" 
-                                name="nome" 
-                                required
-                                placeholder="Seu nome mágico"
-                                class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition"
-                            >
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-purple-200 mb-2">
-                                Email *
-                            </label>
-                            <input 
-                                type="email" 
-                                name="email" 
-                                required
-                                placeholder="seu@email.com"
-                                id="email_input"
-                                class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition"
-                            >
-                            <p id="email_error" class="text-red-400 text-xs mt-1 hidden">Email inválido</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-purple-200 mb-2">
-                                Telefone *
-                            </label>
-                            <input 
-                                type="tel" 
-                                name="telefone" 
-                                required
-                                placeholder="(11) 99999-9999"
-                                id="telefone_input"
-                                maxlength="15"
-                                class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition"
-                            >
-                        </div>
+    <!-- Container principal com dois botões -->
+    <div class="w-full max-w-5xl">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Botão Tarot -->
+            <a href="{% url 'escolher_tarot' %}" class="group">
+                <div class="bg-gradient-to-br from-purple-900/40 to-pink-900/40 border-2 border-purple-500/50 rounded-2xl p-8 hover:border-purple-400 hover:from-purple-900/60 hover:to-pink-900/60 transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center">
+                    <div class="text-7xl mb-6 group-hover:scale-110 transition-transform">🔮</div>
+                    <h2 class="text-3xl font-bold text-purple-200 mb-3">Tiragem de Tarot</h2>
+                    <p class="text-purple-400 text-center mb-6">Descubra o que o destino reserva para você. Consulte o tarot e receba orientações mágicas.</p>
+                    <div class="text-sm text-purple-300 bg-purple-900/50 px-4 py-2 rounded-lg">
+                        A partir de R$ 50,00
                     </div>
                 </div>
+            </a>
 
-                <!-- Seção 2: Tipo de Feitiço -->
-                <div class="bg-black/20 rounded-lg p-6 border border-purple-500/20">
-                    <h3 class="text-lg font-semibold text-purple-300 mb-4">🪄 Escolha Seu Feitiço</h3>
-                    
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-purple-200 mb-2">
-                            Tipo de Feitiço *
-                        </label>
-                        <select 
-                            id="tipo_feitico"
-                            name="tipo_feitico" 
-                            required
-                            onchange="atualizarPreco()"
-                            class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition"
-                            style="color-scheme: dark;"
-                        >
-                            <option value="" style="background-color: #1a0033; color: #c084fc;">-- Selecione um feitiço --</option>
-                            {% for feitico in feiticos %}
-                                <option value="{{ feitico.nome }}" data-preco="{{ feitico.preco }}" style="background-color: #1a0033; color: #c084fc;">
-                                    {{ feitico.emoji }} {{ feitico.nome }} - R$ {{ feitico.preco|floatformat:2 }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-purple-200 mb-2">
-                            Descrição (Opcional)
-                        </label>
-                        <textarea 
-                            name="descricao"
-                            placeholder="Descreva seus desejos e intenções..."
-                            rows="3"
-                            class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition resize-none"
-                        ></textarea>
+            <!-- Botão Feitiço -->
+            <a href="{% url 'escolher_intencao_feitico' %}" class="group">
+                <div class="bg-gradient-to-br from-pink-900/40 to-purple-900/40 border-2 border-pink-500/50 rounded-2xl p-8 hover:border-pink-400 hover:from-pink-900/60 hover:to-purple-900/60 transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center">
+                    <div class="text-7xl mb-6 group-hover:scale-110 transition-transform">🪄</div>
+                    <h2 class="text-3xl font-bold text-pink-200 mb-3">Feitiço Personalizado</h2>
+                    <p class="text-pink-400 text-center mb-6">
+                        <strong class="text-yellow-300">⚠️ Importante:</strong> Antes de realizar qualquer feitiço, é necessário fazer uma tiragem de tarot para verificar se o feitiço terá sucesso. Se não der certo, você paga apenas a intenção.
+                    </p>
+                    <div class="text-sm text-pink-300 bg-pink-900/50 px-4 py-2 rounded-lg">
+                        Intenção: R$ 50,00 + Feitiço
                     </div>
                 </div>
-
-                <!-- Seção 3: Data e Hora -->
-                <div class="bg-black/20 rounded-lg p-6 border border-purple-500/20">
-                    <h3 class="text-lg font-semibold text-purple-300 mb-4">⏰ Agende a Realização</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-purple-200 mb-2">
-                                Data do Feitiço * (Seg-Sex)
-                            </label>
-                            <input 
-                                type="date" 
-                                id="data_agendamento"
-                                name="data_agendamento" 
-                                required
-                                onchange="carregarHorarios()"
-                                class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition"
-                            >
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-purple-200 mb-2">
-                                Hora do Feitiço * (08-12 ou 14-18)
-                            </label>
-                            <select 
-                                id="hora_agendamento"
-                                name="hora_agendamento" 
-                                required
-                                class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition"
-                            >
-                                <option value="">-- Selecione uma hora --</option>
-                            </select>
-                        </div>
-                    </div>
-                    <p class="text-xs text-purple-400 mt-2">Feitiços disponíveis: Segunda a Sexta, 08h-12h e 14h-18h</p>
-                </div>
-
-                <!-- Informações de Preço -->
-                <div class="bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-purple-200 text-sm">Valor do Feitiço:</p>
-                            <p id="preco_display" class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                                R$ 0,00
-                            </p>
-                        </div>
-                        <div class="text-4xl">💳</div>
-                    </div>
-                </div>
-
-                <!-- Botão de Envio -->
-                <button 
-                    type="submit"
-                    class="w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg transition transform hover:scale-105 active:scale-95 shadow-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    id="btn_submit"
-                    disabled
-                >
-                    ✨ Proceder ao Pagamento ✨
-                </button>
-
-                <p class="text-center text-purple-300 text-xs">
-                    Ao continuar, você concorda com nossos termos de magia responsável.
-                </p>
-            </form>
+            </a>
         </div>
+    </div>
 
-        <!-- Footer -->
-        <div class="text-center mt-8 text-purple-400">
-            <p>🌙 Feitiçaria Online © 2026 - Magia Garantida 🌙</p>
+    <!-- Informações adicionais -->
+    <div class="mt-16 max-w-3xl text-center">
+        <div class="bg-gradient-to-br from-purple-900/20 to-pink-900/20 border border-purple-500/20 rounded-xl p-8">
+            <h3 class="text-xl font-semibold text-purple-200 mb-4">✨ Como Funciona</h3>
+            <div class="text-purple-300 space-y-3 text-sm">
+                <p>🔮 <strong>Tarot:</strong> Escolha uma data disponível e faça sua leitura</p>
+                <p>🪄 <strong>Feitiço:</strong> Primeiro faça a intenção (R$ 50), após aprovação, você recebe um link para escolher o feitiço</p>
+                <p>💳 <strong>Pagamento:</strong> Seguro e rápido, com confirmação imediata</p>
+                <p>📧 <strong>Confirmação:</strong> Você receberá um email com todos os detalhes</p>
+            </div>
         </div>
     </div>
 </div>
-
-<script>
-    // Formatação de telefone
-    document.getElementById('telefone_input').addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length > 0) {
-            if (value.length <= 2) {
-                value = `(${value}`;
-            } else if (value.length <= 7) {
-                value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
-            } else {
-                value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7, 11)}`;
-            }
-        }
-        e.target.value = value;
-    });
-
-    // Validação de email
-    document.getElementById('email_input').addEventListener('blur', function(e) {
-        const email = e.target.value;
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const errorMsg = document.getElementById('email_error');
-        
-        if (email && !emailRegex.test(email)) {
-            errorMsg.classList.remove('hidden');
-            e.target.classList.add('border-red-500');
-        } else {
-            errorMsg.classList.add('hidden');
-            e.target.classList.remove('border-red-500');
-        }
-    });
-
-    // Validação de data mínima
-    const dataInput = document.querySelector('#data_agendamento');
-    const hoje = new Date().toISOString().split('T')[0];
-    dataInput.setAttribute('min', hoje);
-
-    // Atualizar preço quando feitiço é selecionado
-    function atualizarPreco() {
-        const select = document.getElementById('tipo_feitico');
-        const opcao = select.options[select.selectedIndex];
-        const preco = opcao.getAttribute('data-preco') || '0.00';
-        document.getElementById('preco_display').textContent = `R$ ${parseFloat(preco).toFixed(2)}`;
-        
-        // Habilitar/desabilitar botão
-        document.getElementById('btn_submit').disabled = !select.value;
-    }
-
-    // Carregar horários disponíveis para a data selecionada
-    function carregarHorarios() {
-        const data = document.getElementById('data_agendamento').value;
-        const horaSelect = document.getElementById('hora_agendamento');
-        
-        if (!data) {
-            horaSelect.innerHTML = '<option value="">-- Selecione uma hora --</option>';
-            return;
-        }
-
-        fetch(`/api/horarios-disponiveis/?data=${data}`)
-            .then(response => response.json())
-            .then(data => {
-                horaSelect.innerHTML = '<option value="">-- Selecione uma hora --</option>';
-                
-                if (data.horarios.length === 0) {
-                    const option = document.createElement('option');
-                    option.disabled = true;
-                    option.textContent = data.mensagem || 'Nenhum horário disponível';
-                    horaSelect.appendChild(option);
-                } else {
-                    data.horarios.forEach(hora => {
-                        const option = document.createElement('option');
-                        option.value = hora;
-                        option.textContent = hora;
-                        horaSelect.appendChild(option);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                horaSelect.innerHTML = '<option value="">Erro ao carregar horários</option>';
-            });
-    }
-
-    // Inicializar
-    atualizarPreco();
-</script>
 {% endblock %}

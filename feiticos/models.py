@@ -1,18 +1,20 @@
 from django.db import models
 from django.utils import timezone
-from datetime import datetime, time
+from datetime import datetime, timedelta
+import uuid
 
-# Será carregado do banco de dados
-FEITICOS_DISPONIVEIS = []
+# Constantes de vagas
+VAGAS_FEITICO = 3
+VAGAS_TAROT = 10
 
-# Horários disponíveis (em formato de tupla: hora_inicio, hora_fim)
-HORARIOS_DISPONIVEIS = [
-    (8, 12),   # 08:00 - 12:00
-    (14, 18),  # 14:00 - 18:00
-]
-
-# Dias da semana (0=segunda, 6=domingo)
+# Dias disponíveis: segunda a quinta (0-3) e sexta (4)
 DIAS_DISPONIVEIS = [0, 1, 2, 3, 4]  # Segunda a sexta
+
+# Horários de atendimento
+HORARIOS_ATENDIMENTO = {
+    'segunda_quinta': '20:00 - 00:00',
+    'sexta': '13:00 - 16:00'
+}
 
 
 class TipoFeitico(models.Model):
@@ -47,37 +49,61 @@ class TipoFeitico(models.Model):
             return 99.90
 
 
+class TipoTarot(models.Model):
+    """Modelo para gerenciar tipos de tarot e preços"""
+    nome = models.CharField(max_length=150, unique=True)
+    emoji = models.CharField(max_length=10, default='🔮')
+    preco = models.DecimalField(max_digits=10, decimal_places=2)
+    descricao = models.TextField(blank=True, null=True)
+    ativo = models.BooleanField(default=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = 'Tipo de Tarot'
+        verbose_name_plural = 'Tipos de Tarot'
+        ordering = ['nome']
+    
+    def __str__(self):
+        return f"{self.emoji} {self.nome} - R$ {self.preco:.2f}"
+    
+    @staticmethod
+    def obter_tarots_disponiveis():
+        """Retorna lista de tarots ativos"""
+        return TipoTarot.objects.filter(ativo=True).values('nome', 'emoji', 'preco')
+
+
 class IndisponibilidadeFeitico(models.Model):
-    """Modelo para gerenciar indisponibilidade de datas/horas"""
+    """Modelo para gerenciar indisponibilidade de datas"""
     data = models.DateField(unique=True)
-    dia_inteiro_indisponivel = models.BooleanField(
+    indisponivel = models.BooleanField(
         default=False,
-        help_text="Se marcado, o dia inteiro fica indisponível"
-    )
-    horas_indisponiveis = models.JSONField(
-        default=list, 
-        blank=True, 
-        help_text="Lista de horas indisponíveis (ex: [8, 9, 10])"
+        help_text="Se marcado, este dia fica indisponível"
     )
     
     class Meta:
-        verbose_name = 'Indisponibilidade de Feitiço'
-        verbose_name_plural = 'Indisponibilidades de Feitiços'
+        verbose_name = 'Indisponibilidade'
+        verbose_name_plural = 'Indisponibilidades'
         ordering = ['data']
     
     def __str__(self):
-        if self.dia_inteiro_indisponivel:
-            return f"{self.data} - Dia Inteiro Indisponível"
-        return f"{self.data} - Horas Indisponíveis: {self.horas_indisponiveis}"
+        return f"{self.data} - {'Indisponível' if self.indisponivel else 'Disponível'}"
 
 
-class Feitico(models.Model):
-    """Modelo para armazenar solicitações de feiticos"""
+class Agendamento(models.Model):
+    """Modelo para armazenar agendamentos (feitiços, tarot, intenções)"""
+    
+    TIPO_PRODUTO_CHOICES = [
+        ('tarot', 'Tiragem de Tarot'),
+        ('intencao_feitico', 'Intenção de Feitiço'),
+        ('feitico', 'Feitiço'),
+    ]
     
     STATUS_CHOICES = [
         ('pendente', 'Pendente de Pagamento'),
-        ('pago', 'Pagamento Confirmado'),
-        ('realizado', 'Feitico Realizado'),
+        ('pagamento_confirmado', 'Pagamento Confirmado'),
+        ('enviar_link', 'Enviar Link para Cliente'),
+        ('link_enviado', 'Link Enviado'),
+        ('realizado', 'Realizado'),
         ('cancelado', 'Cancelado'),
     ]
     
@@ -86,16 +112,29 @@ class Feitico(models.Model):
     email = models.EmailField()
     telefone = models.CharField(max_length=20)
     
-    # Dados do feitico
-    tipo_feitico = models.CharField(max_length=200)
+    # Dados do agendamento
+    tipo_produto = models.CharField(max_length=20, choices=TIPO_PRODUTO_CHOICES)
+    nome_produto = models.CharField(max_length=200)  # Nome do feitiço, tarot ou intenção
     descricao = models.TextField(blank=True, null=True)
     data_agendamento = models.DateField()
-    hora_agendamento = models.TimeField()
     
     # Pagamento e status
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
     data_pagamento = models.DateTimeField(blank=True, null=True)
+    
+    # Link de acesso restrito (para feitiços após aprovação da intenção)
+    token_acesso = models.CharField(max_length=100, unique=True, blank=True, null=True)
+    
+    # Relacionamento com intenção (para feitiços)
+    intencao_relacionada = models.ForeignKey(
+        'self', 
+        on_delete=models.SET_NULL, 
+        blank=True, 
+        null=True,
+        related_name='feiticos_relacionados',
+        help_text="Intenção de feitiço relacionada (se aplicável)"
+    )
     
     # Timestamps
     criado_em = models.DateTimeField(auto_now_add=True)
@@ -103,73 +142,71 @@ class Feitico(models.Model):
     
     class Meta:
         ordering = ['-criado_em']
-        verbose_name = 'Feitico'
-        verbose_name_plural = 'Feiticos'
+        verbose_name = 'Agendamento'
+        verbose_name_plural = 'Agendamentos'
     
     def __str__(self):
-        return f"{self.nome} - {self.tipo_feitico} ({self.data_agendamento})"
+        return f"{self.nome} - {self.tipo_produto} ({self.data_agendamento})"
+    
+    def gerar_token_acesso(self):
+        """Gera um token de acesso único"""
+        self.token_acesso = str(uuid.uuid4())
+        self.save()
+        return self.token_acesso
     
     def marcar_como_pago(self):
-        """Marca o feitico como pago"""
-        self.status = 'pago'
+        """Marca o agendamento como pago"""
+        self.status = 'pagamento_confirmado'
         self.data_pagamento = timezone.now()
         self.save()
     
-    @property
-    def esta_agendado(self):
-        """Verifica se o feitico está agendado para o futuro"""
-        agora = datetime.now().date()
-        return self.data_agendamento >= agora
+    def marcar_como_aprovado(self):
+        """Marca intenção como aprovada e gera token para feitiço"""
+        if self.tipo_produto == 'intencao_feitico':
+            self.status = 'aprovado'
+            self.gerar_token_acesso()
+            self.save()
     
     @staticmethod
-    def obter_preco_feitico(tipo_feitico):
-        """Obtém o preço de um tipo de feitiço"""
-        return TipoFeitico.obter_preco(tipo_feitico)
+    def contar_vagas_usadas(data, tipo_produto):
+        """Conta quantas vagas foram usadas em uma data"""
+        return Agendamento.objects.filter(
+            data_agendamento=data,
+            tipo_produto=tipo_produto,
+            status__in=['pagamento_confirmado', 'pago', 'enviar_link', 'link_enviado', 'realizado']
+        ).count()
     
     @staticmethod
-    def obter_feiticos_disponiveis():
-        """Retorna lista de feitiços disponíveis"""
-        return list(TipoFeitico.obter_feiticos_disponiveis())
-    
-    @staticmethod
-    def verificar_disponibilidade(data, hora):
-        """Verifica se data e hora estão disponíveis"""
-        # Verificar se é dia da semana (segunda a sexta)
+    def verificar_vagas_disponiveis(data, tipo_produto):
+        """Verifica se há vagas disponíveis para um tipo de produto em uma data"""
+        # Verificar se é dia válido
         if data.weekday() not in DIAS_DISPONIVEIS:
-            return False, "Feitiços apenas de segunda a sexta"
+            return False, "Atendimento apenas de segunda a sexta"
         
-        # Verificar indisponibilidades específicas
+        # Verificar indisponibilidade
         try:
             indisp = IndisponibilidadeFeitico.objects.get(data=data)
-            
-            # Se o dia inteiro está indisponível
-            if indisp.dia_inteiro_indisponivel:
-                return False, "Este dia está indisponível. Por favor, selecione outro dia."
-            
-            # Se a hora específica está indisponível
-            if hora.hour in indisp.horas_indisponiveis:
-                return False, "Este horário está indisponível"
+            if indisp.indisponivel:
+                return False, "Este dia está indisponível"
         except IndisponibilidadeFeitico.DoesNotExist:
-            pass  # Usar disponibilidade padrão
+            pass
         
-        # Verificar se está dentro dos horários permitidos
-        hora_permitida = False
-        for inicio, fim in HORARIOS_DISPONIVEIS:
-            if inicio <= hora.hour < fim:
-                hora_permitida = True
-                break
+        # Feitiço final: 3 vagas exclusivas
+        if tipo_produto == 'feitico':
+            vagas_usadas = Agendamento.contar_vagas_usadas(data, 'feitico')
+            vagas_disponiveis = VAGAS_FEITICO - vagas_usadas
+            if vagas_disponiveis <= 0:
+                return False, "Sem vagas disponíveis para feitiços nesta data"
+            return True, f"{vagas_disponiveis} vagas disponíveis"
         
-        if not hora_permitida:
-            return False, "Horário fora do disponível (08-12 ou 14-18)"
+        # Tarot e Intenção: compartilham 10 vagas
+        if tipo_produto in ['tarot', 'intencao_feitico']:
+            vagas_tarot = Agendamento.contar_vagas_usadas(data, 'tarot')
+            vagas_intencao = Agendamento.contar_vagas_usadas(data, 'intencao_feitico')
+            vagas_usadas = vagas_tarot + vagas_intencao
+            vagas_disponiveis = VAGAS_TAROT - vagas_usadas
+            if vagas_disponiveis <= 0:
+                return False, "Sem vagas disponíveis para tarot/intenção nesta data"
+            return True, f"{vagas_disponiveis} vagas disponíveis"
         
-        # Verificar se já existe feitiço agendado nesse horário
-        feiticos_conflito = Feitico.objects.filter(
-            data_agendamento=data,
-            hora_agendamento=hora,
-            status__in=['pago', 'realizado']
-        )
-        
-        if feiticos_conflito.exists():
-            return False, "Este horário já está ocupado"
-        
-        return True, "Disponível"
+        return False, "Tipo de produto inválido"

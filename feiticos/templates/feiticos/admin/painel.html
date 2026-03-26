@@ -1,4 +1,4 @@
-{% extends 'feiticos/base.html' %}
+{% extends 'feiticos/admin/base_admin.html' %}
 
 {% block title %}Painel Administrativo - Feitiçaria Online{% endblock %}
 
@@ -30,87 +30,109 @@
 
             <!-- Conteúdo principal -->
             <div class="lg:col-span-4 space-y-6">
-                <!-- Cards de Estatísticas -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border border-blue-500/30 rounded-xl p-4">
-                        <p class="text-blue-400 text-xs font-semibold mb-1">Total</p>
-                        <p class="text-3xl font-bold text-blue-200">{{ total_feiticos }}</p>
-                        <p class="text-xs text-blue-400 mt-1">feitiços</p>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-yellow-900/30 to-orange-900/30 border border-yellow-500/30 rounded-xl p-4">
-                        <p class="text-yellow-400 text-xs font-semibold mb-1">Pendentes</p>
-                        <p class="text-3xl font-bold text-yellow-200">{{ pendentes }}</p>
-                        <p class="text-xs text-yellow-400 mt-1">pagamento</p>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-green-900/30 to-emerald-900/30 border border-green-500/30 rounded-xl p-4">
-                        <p class="text-green-400 text-xs font-semibold mb-1">Pagos</p>
-                        <p class="text-3xl font-bold text-green-200">{{ pagos }}</p>
-                        <p class="text-xs text-green-400 mt-1">confirmados</p>
-                    </div>
-
-                    <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-xl p-4">
-                        <p class="text-purple-400 text-xs font-semibold mb-1">Realizados</p>
-                        <p class="text-3xl font-bold text-purple-200">{{ realizados }}</p>
-                        <p class="text-xs text-purple-400 mt-1">concluídos</p>
-                    </div>
-                </div>
-
-                <!-- Renda Total -->
+                <!-- Renda Total Geral -->
                 <div class="bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/30 rounded-xl p-6">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-purple-300 text-sm font-semibold mb-1">Renda Total (Pagos + Realizados)</p>
+                            <p class="text-purple-300 text-sm font-semibold mb-1">💰 Renda Total Geral</p>
                             <p class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
                                 R$ {{ renda_total }}
                             </p>
                         </div>
-                        <div class="text-5xl">💰</div>
+                        <div class="text-6xl">💎</div>
                     </div>
                 </div>
 
-                <!-- Gráficos -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Gráfico de Feitiços por Data -->
-                    <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-xl p-6">
-                        <h3 class="text-lg font-bold text-purple-200 mb-4">📈 Feitiços por Data (30 dias)</h3>
-                        <canvas id="graficoFeiticos"></canvas>
+                <!-- Cards de Estatísticas por Tipo -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Intenções -->
+                    <div class="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border border-blue-500/30 rounded-xl p-4">
+                        <p class="text-blue-400 text-xs font-semibold mb-1">✨ Intenções</p>
+                        <p class="text-3xl font-bold text-blue-200">{{ intencoes_count }}</p>
+                        <p class="text-xs text-blue-400 mt-1">R$ {{ renda_intencao }}</p>
                     </div>
 
-                    <!-- Gráfico de Renda por Data -->
-                    <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-xl p-6">
-                        <h3 class="text-lg font-bold text-purple-200 mb-4">💵 Renda por Data (30 dias)</h3>
-                        <canvas id="graficoRenda"></canvas>
+                    <!-- Tarots -->
+                    <div class="bg-gradient-to-br from-yellow-900/30 to-orange-900/30 border border-yellow-500/30 rounded-xl p-4">
+                        <p class="text-yellow-400 text-xs font-semibold mb-1">🔮 Tarots</p>
+                        <p class="text-3xl font-bold text-yellow-200">{{ tarots_count }}</p>
+                        <p class="text-xs text-yellow-400 mt-1">R$ {{ renda_tarot }}</p>
+                    </div>
+
+                    <!-- Feitiços -->
+                    <div class="bg-gradient-to-br from-green-900/30 to-emerald-900/30 border border-green-500/30 rounded-xl p-4">
+                        <p class="text-green-400 text-xs font-semibold mb-1">🪄 Feitiços</p>
+                        <p class="text-3xl font-bold text-green-200">{{ feiticos_count }}</p>
+                        <p class="text-xs text-green-400 mt-1">R$ {{ renda_feitico }}</p>
                     </div>
                 </div>
 
-                <!-- Próximos Feitiços -->
+                <!-- Gráficos Separados -->
+                <div class="space-y-6">
+                    <!-- Gráfico de Intenções -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border border-blue-500/30 rounded-xl p-6">
+                            <h3 class="text-lg font-bold text-blue-200 mb-4">✨ Intenções - Quantidade (30 dias)</h3>
+                            <canvas id="graficoIntencaoQtd"></canvas>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border border-blue-500/30 rounded-xl p-6">
+                            <h3 class="text-lg font-bold text-blue-200 mb-4">✨ Intenções - Renda (30 dias)</h3>
+                            <canvas id="graficoIntencaoRenda"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico de Tarots -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-gradient-to-br from-yellow-900/30 to-orange-900/30 border border-yellow-500/30 rounded-xl p-6">
+                            <h3 class="text-lg font-bold text-yellow-200 mb-4">🔮 Tarots - Quantidade (30 dias)</h3>
+                            <canvas id="graficoTarotQtd"></canvas>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-yellow-900/30 to-orange-900/30 border border-yellow-500/30 rounded-xl p-6">
+                            <h3 class="text-lg font-bold text-yellow-200 mb-4">🔮 Tarots - Renda (30 dias)</h3>
+                            <canvas id="graficoTarotRenda"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico de Feitiços -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-gradient-to-br from-green-900/30 to-emerald-900/30 border border-green-500/30 rounded-xl p-6">
+                            <h3 class="text-lg font-bold text-green-200 mb-4">🪄 Feitiços - Quantidade (30 dias)</h3>
+                            <canvas id="graficoFeiticoQtd"></canvas>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-green-900/30 to-emerald-900/30 border border-green-500/30 rounded-xl p-6">
+                            <h3 class="text-lg font-bold text-green-200 mb-4">🪄 Feitiços - Renda (30 dias)</h3>
+                            <canvas id="graficoFeiticoRenda"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Próximos Agendamentos -->
                 <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-xl p-6">
-                    <h3 class="text-lg font-bold text-purple-200 mb-4">⏰ Próximos Feitiços Agendados</h3>
+                    <h3 class="text-lg font-bold text-purple-200 mb-4">⏰ Próximos Agendamentos</h3>
                     
                     {% if proximos %}
                         <div class="space-y-3">
-                            {% for feitico in proximos %}
+                            {% for agendamento in proximos %}
                                 <div class="bg-black/20 rounded-lg p-4 border border-purple-500/20 hover:border-purple-400 transition">
                                     <div class="flex items-start justify-between">
                                         <div class="flex-1">
-                                            <p class="font-semibold text-purple-200">{{ feitico.tipo_feitico }}</p>
-                                            <p class="text-sm text-purple-400">👤 {{ feitico.nome }}</p>
-                                            <p class="text-xs text-purple-500 mt-1">📅 {{ feitico.data_agendamento|date:"d/m/Y" }} às {{ feitico.hora_agendamento|time:"H:i" }}</p>
+                                            <p class="font-semibold text-purple-200">{{ agendamento.nome_produto }}</p>
+                                            <p class="text-sm text-purple-400">👤 {{ agendamento.nome }}</p>
+                                            <p class="text-xs text-purple-500 mt-1">📅 {{ agendamento.data_agendamento|date:"d/m/Y" }}</p>
                                         </div>
                                         <div class="text-right">
-                                            <p class="font-bold text-purple-200">R$ {{ feitico.valor|floatformat:2 }}</p>
-                                            <span class="inline-block mt-2 px-3 py-1 bg-green-600/30 text-green-300 text-xs rounded-full">
-                                                ✓ Pago
-                                            </span>
+                                            <p class="text-sm font-semibold text-green-300">R$ {{ agendamento.valor|floatformat:2 }}</p>
+                                            <p class="text-xs text-purple-400 mt-1">{{ agendamento.get_status_display }}</p>
                                         </div>
                                     </div>
                                 </div>
                             {% endfor %}
                         </div>
                     {% else %}
-                        <p class="text-purple-400 text-center py-4">Nenhum feitiço agendado para os próximos dias</p>
+                        <p class="text-purple-400 text-center py-8">Nenhum agendamento próximo</p>
                     {% endif %}
                 </div>
             </div>
@@ -122,102 +144,213 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    // Dados dos gráficos
-    const datas = {{ datas_json|safe }};
-    const quantidades = {{ quantidades_json|safe }};
-    const rendas = {{ rendas_json|safe }};
+const datas = {{ datas_json|safe }};
 
-    // Gráfico de Feitiços por Data
-    const ctxFeiticos = document.getElementById('graficoFeiticos').getContext('2d');
-    new Chart(ctxFeiticos, {
-        type: 'bar',
-        data: {
-            labels: datas,
-            datasets: [{
-                label: 'Quantidade de Feitiços',
-                data: quantidades,
-                backgroundColor: 'rgba(168, 85, 247, 0.5)',
-                borderColor: 'rgba(168, 85, 247, 1)',
-                borderWidth: 2,
-                borderRadius: 5,
-            }]
+// Gráfico Intenção - Quantidade
+const ctxIntencaoQtd = document.getElementById('graficoIntencaoQtd').getContext('2d');
+new Chart(ctxIntencaoQtd, {
+    type: 'bar',
+    data: {
+        labels: datas,
+        datasets: [{
+            label: 'Quantidade',
+            data: {{ intencao_qtd_json|safe }},
+            backgroundColor: 'rgba(59, 130, 246, 0.5)',
+            borderColor: 'rgba(59, 130, 246, 1)',
+            borderWidth: 2,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#c084fc',
-                        font: { size: 12 }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { 
-                        color: '#a78bfa',
-                        stepSize: 1
-                    },
-                    grid: { color: 'rgba(168, 85, 247, 0.1)' }
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1,
+                    color: 'rgba(147, 197, 253, 0.8)'
                 },
-                x: {
-                    ticks: { color: '#a78bfa' },
-                    grid: { color: 'rgba(168, 85, 247, 0.1)' }
-                }
-            }
+                grid: { color: 'rgba(147, 197, 253, 0.1)' }
+            },
+            x: { ticks: { color: 'rgba(147, 197, 253, 0.8)' } }
         }
-    });
+    }
+});
 
-    // Gráfico de Renda por Data
-    const ctxRenda = document.getElementById('graficoRenda').getContext('2d');
-    new Chart(ctxRenda, {
-        type: 'line',
-        data: {
-            labels: datas,
-            datasets: [{
-                label: 'Renda (R$)',
-                data: rendas,
-                borderColor: 'rgba(236, 72, 153, 1)',
-                backgroundColor: 'rgba(236, 72, 153, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: 'rgba(236, 72, 153, 1)',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 5,
-            }]
+// Gráfico Intenção - Renda
+const ctxIntencaoRenda = document.getElementById('graficoIntencaoRenda').getContext('2d');
+new Chart(ctxIntencaoRenda, {
+    type: 'line',
+    data: {
+        labels: datas,
+        datasets: [{
+            label: 'Renda (R$)',
+            data: {{ intencao_renda_json|safe }},
+            borderColor: 'rgba(59, 130, 246, 1)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#c084fc',
-                        font: { size: 12 }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { 
-                        color: '#a78bfa',
-                        callback: function(value) {
-                            return 'R$ ' + value.toFixed(2);
-                        }
-                    },
-                    grid: { color: 'rgba(168, 85, 247, 0.1)' }
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    color: 'rgba(147, 197, 253, 0.8)',
+                    callback: function(value) { return 'R$ ' + value.toFixed(2); }
                 },
-                x: {
-                    ticks: { color: '#a78bfa' },
-                    grid: { color: 'rgba(168, 85, 247, 0.1)' }
-                }
-            }
+                grid: { color: 'rgba(147, 197, 253, 0.1)' }
+            },
+            x: { ticks: { color: 'rgba(147, 197, 253, 0.8)' } }
         }
-    });
+    }
+});
+
+// Gráfico Tarot - Quantidade
+const ctxTarotQtd = document.getElementById('graficoTarotQtd').getContext('2d');
+new Chart(ctxTarotQtd, {
+    type: 'bar',
+    data: {
+        labels: datas,
+        datasets: [{
+            label: 'Quantidade',
+            data: {{ tarot_qtd_json|safe }},
+            backgroundColor: 'rgba(217, 119, 6, 0.5)',
+            borderColor: 'rgba(217, 119, 6, 1)',
+            borderWidth: 2,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1,
+                    color: 'rgba(253, 224, 71, 0.8)'
+                },
+                grid: { color: 'rgba(253, 224, 71, 0.1)' }
+            },
+            x: { ticks: { color: 'rgba(253, 224, 71, 0.8)' } }
+        }
+    }
+});
+
+// Gráfico Tarot - Renda
+const ctxTarotRenda = document.getElementById('graficoTarotRenda').getContext('2d');
+new Chart(ctxTarotRenda, {
+    type: 'line',
+    data: {
+        labels: datas,
+        datasets: [{
+            label: 'Renda (R$)',
+            data: {{ tarot_renda_json|safe }},
+            borderColor: 'rgba(217, 119, 6, 1)',
+            backgroundColor: 'rgba(217, 119, 6, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    color: 'rgba(253, 224, 71, 0.8)',
+                    callback: function(value) { return 'R$ ' + value.toFixed(2); }
+                },
+                grid: { color: 'rgba(253, 224, 71, 0.1)' }
+            },
+            x: { ticks: { color: 'rgba(253, 224, 71, 0.8)' } }
+        }
+    }
+});
+
+// Gráfico Feitiço - Quantidade
+const ctxFeiticoQtd = document.getElementById('graficoFeiticoQtd').getContext('2d');
+new Chart(ctxFeiticoQtd, {
+    type: 'bar',
+    data: {
+        labels: datas,
+        datasets: [{
+            label: 'Quantidade',
+            data: {{ feitico_qtd_json|safe }},
+            backgroundColor: 'rgba(34, 197, 94, 0.5)',
+            borderColor: 'rgba(34, 197, 94, 1)',
+            borderWidth: 2,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1,
+                    color: 'rgba(134, 239, 172, 0.8)'
+                },
+                grid: { color: 'rgba(134, 239, 172, 0.1)' }
+            },
+            x: { ticks: { color: 'rgba(134, 239, 172, 0.8)' } }
+        }
+    }
+});
+
+// Gráfico Feitiço - Renda
+const ctxFeiticoRenda = document.getElementById('graficoFeiticoRenda').getContext('2d');
+new Chart(ctxFeiticoRenda, {
+    type: 'line',
+    data: {
+        labels: datas,
+        datasets: [{
+            label: 'Renda (R$)',
+            data: {{ feitico_renda_json|safe }},
+            borderColor: 'rgba(34, 197, 94, 1)',
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    color: 'rgba(134, 239, 172, 0.8)',
+                    callback: function(value) { return 'R$ ' + value.toFixed(2); }
+                },
+                grid: { color: 'rgba(134, 239, 172, 0.1)' }
+            },
+            x: { ticks: { color: 'rgba(134, 239, 172, 0.8)' } }
+        }
+    }
+});
 </script>
 {% endblock %}

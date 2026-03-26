@@ -1,0 +1,246 @@
+{% extends 'feiticos/base.html' %}
+
+{% block title %}Escolha seu {% if tipo_produto == 'tarot' %}Tarot{% else %}Feitiço{% endif %} - Feitiçaria Online{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col items-center justify-center p-4 py-12 bg-gradient-to-br from-purple-950 via-black to-pink-950">
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <a href="{% url 'index' %}" class="inline-block mb-6 text-purple-400 hover:text-purple-300 transition">← Voltar</a>
+        <h1 class="text-5xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+            {% if tipo_produto == 'tarot' %}🔮 Escolha seu Tarot{% else %}🪄 Escolha sua Intenção de Feitiço{% endif %}
+        </h1>
+    </div>
+
+    <!-- Container principal -->
+    <div class="w-full max-w-3xl">
+        <!-- Formulário de agendamento -->
+        <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-2xl p-8 space-y-6">
+            <form method="post" action="{% url 'agendar_produto' %}" class="space-y-6" id="formAgendamento">
+                {% csrf_token %}
+                <input type="hidden" name="tipo_produto" value="{{ tipo_produto }}">
+                <input type="hidden" name="nome_produto" id="nome_produto" value="">
+                <input type="hidden" name="valor" id="valor" value="">
+
+                <!-- Dados pessoais -->
+                <div class="bg-black/20 rounded-lg p-6 border border-purple-500/20">
+                    <h3 class="text-lg font-semibold text-purple-300 mb-4">👤 Informações Pessoais</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-purple-200 mb-2">Nome Completo *</label>
+                            <input 
+                                type="text" 
+                                name="nome" 
+                                required
+                                placeholder="Seu nome"
+                                class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-purple-200 mb-2">Email *</label>
+                            <input 
+                                type="email" 
+                                name="email" 
+                                required
+                                placeholder="seu@email.com"
+                                id="email_input"
+                                class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition"
+                            >
+                            <p id="email_error" class="text-red-400 text-xs mt-1 hidden">Email inválido</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-purple-200 mb-2">Telefone *</label>
+                            <input 
+                                type="tel" 
+                                name="telefone" 
+                                required
+                                placeholder="(11) 99999-9999"
+                                id="telefone_input"
+                                maxlength="15"
+                                class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white placeholder-purple-400/50 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seleção de Produto -->
+                <div class="bg-black/20 rounded-lg p-6 border border-purple-500/20">
+                    <h3 class="text-lg font-semibold text-purple-300 mb-4">
+                        {% if tipo_produto == 'tarot' %}🔮 Escolha a Leitura{% else %}✨ Escolha a Intenção{% endif %}
+                    </h3>
+                    
+                    <select 
+                        id="produto_select"
+                        onchange="atualizarProduto()"
+                        class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition"
+                        style="color-scheme: dark;"
+                    >
+                        <option value="">-- Selecione um produto --</option>
+                        {% for produto in produtos %}
+                            <option value="{{ produto.nome }}" data-preco="{{ produto.preco }}" data-emoji="{{ produto.emoji }}" style="background-color: #1a0033; color: #c084fc;">
+                                {{ produto.emoji }} {{ produto.nome }} - R$ {{ produto.preco|floatformat:2 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Seleção de data -->
+                <div class="bg-black/20 rounded-lg p-6 border border-purple-500/20">
+                    <h3 class="text-lg font-semibold text-purple-300 mb-4">📅 Data do Agendamento</h3>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-purple-200 mb-2">Selecione uma data disponível *</label>
+                        <select 
+                            name="data_agendamento" 
+                            required
+                            id="data_select"
+                            class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition"
+                            style="color-scheme: dark;"
+                        >
+                            <option value="">-- Carregando datas disponíveis --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Resumo -->
+                <div class="bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/30 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-purple-200 mb-4">💰 Resumo do Pedido</h3>
+                    <div class="space-y-2 text-purple-300">
+                        <p><strong>Produto:</strong> <span id="resumo_produto">Selecione um produto</span></p>
+                        <p><strong>Valor:</strong> <span id="resumo_valor" class="text-pink-400 font-bold">R$ 0,00</span></p>
+                    </div>
+                </div>
+
+                <!-- Botões -->
+                <div class="flex gap-4">
+                    <a href="{% url 'index' %}" class="flex-1 py-3 px-4 bg-purple-900/50 hover:bg-purple-800 text-purple-200 font-bold rounded-lg transition text-center">
+                        ❌ Cancelar
+                    </a>
+                    <button 
+                        type="submit"
+                        class="flex-1 py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg transition"
+                    >
+                        ✅ Continuar para Pagamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Formatação de telefone
+document.getElementById('telefone_input').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 0) {
+        if (value.length <= 2) {
+            value = '(' + value;
+        } else if (value.length <= 7) {
+            value = '(' + value.substring(0, 2) + ') ' + value.substring(2);
+        } else {
+            value = '(' + value.substring(0, 2) + ') ' + value.substring(2, 7) + '-' + value.substring(7, 11);
+        }
+    }
+    e.target.value = value;
+});
+
+// Validação de email
+document.getElementById('email_input').addEventListener('blur', function(e) {
+    const email = e.target.value;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const errorEl = document.getElementById('email_error');
+    
+    if (email && !emailRegex.test(email)) {
+        errorEl.classList.remove('hidden');
+    } else {
+        errorEl.classList.add('hidden');
+    }
+});
+
+// Atualizar produto selecionado
+function atualizarProduto() {
+    const select = document.getElementById('produto_select');
+    const option = select.options[select.selectedIndex];
+    
+    if (option.value) {
+        const preco = parseFloat(option.getAttribute('data-preco'));
+        const emoji = option.getAttribute('data-emoji');
+        const nome = option.text.replace(emoji + ' ', '').split(' - ')[0];
+        
+        document.getElementById('nome_produto').value = nome;
+        document.getElementById('valor').value = preco.toString();
+        document.getElementById('resumo_produto').textContent = emoji + ' ' + nome;
+        document.getElementById('resumo_valor').textContent = 'R$ ' + preco.toFixed(2);
+        console.log('Produto atualizado:', nome, 'Preco:', preco);
+    } else {
+        document.getElementById('nome_produto').value = '';
+        document.getElementById('valor').value = '';
+        document.getElementById('resumo_produto').textContent = 'Selecione um produto';
+        document.getElementById('resumo_valor').textContent = 'R$ 0,00';
+    }
+}
+
+// Carregar datas disponíveis
+function carregarDatas() {
+    const tipoProduto = '{{ tipo_produto }}';
+    console.log('Carregando datas para tipo:', tipoProduto);
+    
+    fetch('/api/datas-disponiveis/?tipo_produto=' + tipoProduto)
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Datas recebidas:', data);
+            const select = document.getElementById('data_select');
+            select.innerHTML = '<option value="">-- Selecione uma data --</option>';
+            
+            if (data.datas && data.datas.length > 0) {
+                data.datas.forEach(dataStr => {
+                    const option = document.createElement('option');
+                    const dataObj = new Date(dataStr + 'T00:00:00');
+                    const diaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][dataObj.getDay()];
+                    const dia = dataObj.getDate();
+                    const mes = dataObj.getMonth() + 1;
+                    
+                    option.value = dataStr;
+                    option.textContent = diaSemana + ', ' + dia + '/' + (mes < 10 ? '0' + mes : mes);
+                    option.style.backgroundColor = '#1a0033';
+                    option.style.color = '#c084fc';
+                    select.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.textContent = 'Nenhuma data disponível';
+                option.disabled = true;
+                select.appendChild(option);
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao carregar datas:', error);
+            const select = document.getElementById('data_select');
+            select.innerHTML = '<option value="">Erro ao carregar datas</option>';
+        });
+}
+
+// Carregar datas ao abrir página
+document.addEventListener('DOMContentLoaded', carregarDatas);
+
+// Validar formulário antes de enviar
+document.getElementById('formAgendamento').addEventListener('submit', function(e) {
+    if (!document.getElementById('nome_produto').value) {
+        e.preventDefault();
+        alert('Por favor, selecione um produto');
+        return false;
+    }
+    if (!document.getElementById('data_agendamento').value) {
+        e.preventDefault();
+        alert('Por favor, selecione uma data');
+        return false;
+    }
+});
+</script>
+{% endblock %}

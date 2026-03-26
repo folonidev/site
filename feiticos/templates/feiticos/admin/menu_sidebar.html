@@ -4,13 +4,13 @@
         <a href="{% url 'admin_painel' %}" class="block px-4 py-3 rounded-lg hover:bg-purple-800 transition {% if request.resolver_match.url_name == 'admin_painel' %}bg-purple-600 text-white font-semibold{% else %}bg-purple-900/50 text-purple-200{% endif %}">
             📊 Dashboard
         </a>
-        <a href="{% url 'admin_feiticos' %}" class="block px-4 py-3 rounded-lg hover:bg-purple-800 transition {% if request.resolver_match.url_name == 'admin_feiticos' %}bg-purple-600 text-white font-semibold{% else %}bg-purple-900/50 text-purple-200{% endif %}">
+        <a href="{% url 'admin_agendamentos' %}" class="block px-4 py-3 rounded-lg hover:bg-purple-800 transition {% if request.resolver_match.url_name == 'admin_agendamentos' %}bg-purple-600 text-white font-semibold{% else %}bg-purple-900/50 text-purple-200{% endif %}">
             🪄 Agendamentos
         </a>
-        <a href="{% url 'admin_gerenciar_feiticos' %}" class="block px-4 py-3 rounded-lg hover:bg-purple-800 transition {% if request.resolver_match.url_name == 'admin_gerenciar_feiticos' %}bg-purple-600 text-white font-semibold{% else %}bg-purple-900/50 text-purple-200{% endif %}">
-            ✨ Gerenciar Feitiços
+        <a href="{% url 'admin_gerenciar_produtos' %}" class="block px-4 py-3 rounded-lg hover:bg-purple-800 transition {% if request.resolver_match.url_name == 'admin_gerenciar_produtos' %}bg-purple-600 text-white font-semibold{% else %}bg-purple-900/50 text-purple-200{% endif %}">
+            ✨ Gerenciar Produtos
         </a>
-        <a href="{% url 'admin_disponibilidade' %}" class="block px-4 py-3 rounded-lg hover:bg-purple-800 transition {% if request.resolver_match.url_name == 'admin_disponibilidade' %}bg-purple-600 text-white font-semibold{% else %}bg-purple-900/50 text-purple-200{% endif %}">
+        <a href="{% url 'admin_indisponibilidade' %}" class="block px-4 py-3 rounded-lg hover:bg-purple-800 transition {% if request.resolver_match.url_name == 'admin_indisponibilidade' %}bg-purple-600 text-white font-semibold{% else %}bg-purple-900/50 text-purple-200{% endif %}">
             ⏰ Indisponibilidade
         </a>
     </div>

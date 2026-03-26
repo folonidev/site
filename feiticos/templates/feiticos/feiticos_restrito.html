@@ -1,0 +1,160 @@
+{% extends 'feiticos/base.html' %}
+
+{% block title %}Escolha seu Feitiço - Feitiçaria Online{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col items-center justify-center p-4 py-12 bg-gradient-to-br from-purple-950 via-black to-pink-950">
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-5xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+            🪄 Escolha seu Feitiço
+        </h1>
+        <p class="text-purple-300 mb-4">Sua intenção foi aprovada! Agora escolha o feitiço desejado</p>
+        
+        <!-- Informação da intenção -->
+        <div class="bg-gradient-to-br from-yellow-900/30 to-orange-900/30 border border-yellow-500/30 rounded-lg p-4 max-w-2xl mx-auto">
+            <p class="text-yellow-300 text-sm">
+                <strong>✨ Intenção Aprovada:</strong> {{ intencao.nome_produto }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Container principal -->
+    <div class="w-full max-w-2xl">
+        <!-- Formulário de agendamento -->
+        <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-2xl p-8">
+            <h2 class="text-3xl font-bold text-purple-200 mb-8">📅 Agende seu Feitiço</h2>
+            
+            <form method="post" action="{% url 'agendar_feitico' intencao.token_acesso %}" class="space-y-6" id="formFeitico">
+                {% csrf_token %}
+
+                <!-- Seleção de feitiço -->
+                <div class="bg-black/20 rounded-lg p-6 border border-purple-500/20">
+                    <h3 class="text-lg font-semibold text-purple-300 mb-4">🪄 Selecione o Feitiço</h3>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-purple-200 mb-2">Qual feitiço deseja realizar? *</label>
+                        <select 
+                            name="tipo_feitico" 
+                            id="tipo_feitico"
+                            required
+                            onchange="atualizarPreco()"
+                            class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition"
+                            style="color-scheme: dark;"
+                        >
+                            <option value="">-- Selecione um feitiço --</option>
+                            {% for feitico in feiticos %}
+                                <option value="{{ feitico.nome }}" data-preco="{{ feitico.preco }}" data-emoji="{{ feitico.emoji }}" style="background-color: #1a0033; color: #c084fc;">
+                                    {{ feitico.emoji }} {{ feitico.nome }} - R$ {{ feitico.preco|floatformat:2 }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Seleção de data -->
+                <div class="bg-black/20 rounded-lg p-6 border border-purple-500/20">
+                    <h3 class="text-lg font-semibold text-purple-300 mb-4">📅 Data do Feitiço</h3>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-purple-200 mb-2">Selecione uma data disponível *</label>
+                        <select 
+                            name="data_agendamento" 
+                            required
+                            id="data_select"
+                            class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition"
+                            style="color-scheme: dark;"
+                        >
+                            <option value="">-- Carregando datas disponíveis --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Resumo -->
+                <div class="bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/30 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-purple-200 mb-4">💰 Resumo do Pedido</h3>
+                    <div class="space-y-2 text-purple-300">
+                        <p><strong>Feitiço:</strong> <span id="resumo_feitico">Selecione um feitiço</span></p>
+                        <p class="text-lg border-t border-purple-500/30 pt-2"><strong>Valor:</strong> <span id="resumo_total" class="text-pink-400 font-bold">R$ 0,00</span></p>
+                    </div>
+                </div>
+
+                <!-- Botões -->
+                <div class="flex gap-4">
+                    <a href="{% url 'index' %}" class="flex-1 py-3 px-4 bg-purple-900/50 hover:bg-purple-800 text-purple-200 font-bold rounded-lg transition text-center">
+                        ❌ Cancelar
+                    </a>
+                    <button 
+                        type="submit"
+                        class="flex-1 py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg transition"
+                    >
+                        ✅ Continuar para Pagamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Atualizar preço quando selecionar feitiço
+function atualizarPreco() {
+    const select = document.getElementById('tipo_feitico');
+    const option = select.options[select.selectedIndex];
+    
+    if (option.value) {
+        const preco = parseFloat(option.getAttribute('data-preco'));
+        const emoji = option.getAttribute('data-emoji');
+        const nome = option.text.split(' - ')[0].trim();
+        
+        document.getElementById('resumo_feitico').textContent = emoji + ' ' + nome + ' - R$ ' + preco.toFixed(2);
+        document.getElementById('resumo_total').textContent = 'R$ ' + preco.toFixed(2);
+    } else {
+        document.getElementById('resumo_feitico').textContent = 'Selecione um feitiço';
+        document.getElementById('resumo_total').textContent = 'R$ 0,00';
+    }
+}
+
+// Carregar datas disponíveis
+function carregarDatas() {
+    fetch(`/api/datas-disponiveis/?tipo_produto=feitico`)
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('data_select');
+            select.innerHTML = '<option value="">-- Selecione uma data --</option>';
+            
+            data.datas.forEach(data => {
+                const option = document.createElement('option');
+                const dataObj = new Date(data + 'T00:00:00');
+                const diaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][dataObj.getDay()];
+                const dia = dataObj.getDate();
+                const mes = dataObj.getMonth() + 1;
+                
+                option.value = data;
+                option.textContent = `${diaSemana}, ${dia}/${mes < 10 ? '0' + mes : mes}`;
+                option.style.backgroundColor = '#1a0033';
+                option.style.color = '#c084fc';
+                select.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Erro ao carregar datas:', error));
+}
+
+// Carregar datas ao abrir página
+document.addEventListener('DOMContentLoaded', carregarDatas);
+
+// Validar formulário antes de enviar
+document.getElementById('formFeitico').addEventListener('submit', function(e) {
+    if (!document.getElementById('tipo_feitico').value) {
+        e.preventDefault();
+        alert('Por favor, selecione um feitiço');
+        return false;
+    }
+    if (!document.getElementById('data_select').value) {
+        e.preventDefault();
+        alert('Por favor, selecione uma data');
+        return false;
+    }
+});
+</script>
+{% endblock %}
