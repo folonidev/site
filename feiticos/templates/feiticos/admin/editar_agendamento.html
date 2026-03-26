@@ -35,10 +35,6 @@
                 <h2 class="text-xl font-bold text-purple-300 mb-4">👤 Dados do Cliente</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <p class="text-purple-300 text-sm mb-1">Nome:</p>
-                        <p class="text-white font-semibold">{{ agendamento.nome }}</p>
-                    </div>
-                    <div>
                         <p class="text-purple-300 text-sm mb-1">Email:</p>
                         <p class="text-white font-semibold">{{ agendamento.email }}</p>
                     </div>
@@ -58,6 +54,8 @@
                         <p class="text-white font-semibold">
                             {% if agendamento.tipo_produto == 'tarot' %}
                                 🔮 Tiragem de Tarot
+                            {% elif agendamento.tipo_produto == 'tarot_acompanhamento' %}
+                                ✨ Tiragem de Acompanhamento
                             {% elif agendamento.tipo_produto == 'intencao_feitico' %}
                                 ✨ Intenção de Feitiço
                             {% else %}
@@ -70,12 +68,24 @@
                         <p class="text-white font-semibold">{{ agendamento.nome_produto }}</p>
                     </div>
                     <div>
-                        <p class="text-purple-300 text-sm mb-1">Data Agendada:</p>
-                        <p class="text-white font-semibold">{{ agendamento.data_agendamento|date:'d/m/Y' }}</p>
-                    </div>
-                    <div>
                         <p class="text-purple-300 text-sm mb-1">Valor:</p>
                         <p class="text-white font-semibold">R$ {{ agendamento.valor|floatformat:2 }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Informações de Rastreabilidade -->
+            <div class="bg-gradient-to-br from-yellow-900/20 to-orange-900/20 border border-yellow-500/20 rounded-lg p-6 mb-8">
+                <h3 class="text-lg font-semibold text-yellow-300 mb-3">📅 Rastreabilidade de Datas</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-yellow-300 text-sm mb-1">Data Original do Agendamento:</p>
+                        <p class="text-white font-semibold">{{ agendamento.data_agendamento_original|date:'d/m/Y' }}</p>
+                        <p class="text-yellow-400 text-xs mt-1">⚠️ Não pode ser alterada</p>
+                    </div>
+                    <div>
+                        <p class="text-yellow-300 text-sm mb-1">Data Atual do Agendamento:</p>
+                        <p class="text-white font-semibold">{{ agendamento.data_agendamento|date:'d/m/Y' }}</p>
                     </div>
                 </div>
             </div>
@@ -83,6 +93,34 @@
             <!-- Formulário de Edição -->
             <form method="post" class="space-y-6">
                 {% csrf_token %}
+                
+                <div class="bg-black/20 rounded-lg p-6 border border-purple-500/20">
+                    <h2 class="text-xl font-bold text-purple-300 mb-4">✏️ Editar Informações</h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-purple-200 mb-2">Nome do Cliente:</label>
+                            <input 
+                                type="text"
+                                name="nome"
+                                value="{{ agendamento.nome }}"
+                                class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition"
+                                required
+                            >
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-purple-200 mb-2">Data do Agendamento:</label>
+                            <input 
+                                type="date"
+                                name="data_agendamento"
+                                value="{{ agendamento.data_agendamento|date:'Y-m-d' }}"
+                                class="w-full px-4 py-3 bg-purple-900/20 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition"
+                                required
+                            >
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="bg-black/20 rounded-lg p-6 border border-purple-500/20">
                     <h2 class="text-xl font-bold text-purple-300 mb-4">📊 Status</h2>

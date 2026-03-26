@@ -492,12 +492,35 @@ def admin_editar_agendamento(request, pk):
         return redirect('admin_agendamentos')
     
     if request.method == 'POST':
+        # Capturar campos editáveis
+        novo_nome = request.POST.get('nome', '').strip()
+        nova_data_str = request.POST.get('data_agendamento', '').strip()
         novo_status = request.POST.get('status')
+        
+        # Validar nome
+        if novo_nome:
+            agendamento.nome = novo_nome
+        
+        # Validar data
+        if nova_data_str:
+            try:
+                nova_data = datetime.strptime(nova_data_str, '%Y-%m-%d').date()
+                agendamento.data_agendamento = nova_data
+            except ValueError:
+                messages.error(request, 'Data inválida!')
+                nova_data_str = ''
+        
+        # Validar status
         if novo_status:
             agendamento.status = novo_status
+        
+        # Salvar se houver alterações
+        if novo_nome or nova_data_str or novo_status:
             agendamento.save()
             messages.success(request, 'Agendamento atualizado com sucesso!')
             return redirect('admin_agendamentos')
+        else:
+            messages.warning(request, 'Nenhuma alteração foi feita.')
     
     status_choices = Agendamento.STATUS_CHOICES
     

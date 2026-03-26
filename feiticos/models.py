@@ -119,6 +119,7 @@ class Agendamento(models.Model):
     nome_produto = models.CharField(max_length=200)  # Nome do feitiço, tarot ou intenção
     descricao = models.TextField(blank=True, null=True)
     data_agendamento = models.DateField()
+    data_agendamento_original = models.DateField(blank=True, null=True, help_text="Data original do agendamento (para rastreabilidade)")
     
     # Pagamento e status
     valor = models.DecimalField(max_digits=10, decimal_places=2)
@@ -141,6 +142,12 @@ class Agendamento(models.Model):
     # Timestamps
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
+    
+    def save(self, *args, **kwargs):
+        """Salva o agendamento e define data_agendamento_original se não existir"""
+        if not self.data_agendamento_original:
+            self.data_agendamento_original = self.data_agendamento
+        super().save(*args, **kwargs)
     
     class Meta:
         ordering = ['-criado_em']
