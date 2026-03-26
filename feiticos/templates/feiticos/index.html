@@ -1,14 +1,17 @@
 {% extends 'feiticos/base.html' %}
+{% load static %}
 
-{% block title %}Feitiçaria Online - Escolha seu Serviço{% endblock %}
+{% block title %}Raízes - Escolha seu Serviço{% endblock %}
 
 {% block content %}
 <div class="min-h-screen flex flex-col items-center justify-center p-4 py-12 bg-gradient-to-br from-purple-950 via-black to-pink-950">
     <!-- Header -->
     <div class="text-center mb-16">
+        <img src="{% static 'images/logo_raizes.png' %}" alt="Raízes" class="h-32 mx-auto mb-6">
         <h1 class="text-6xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-            ✨ Feitiçaria Online ✨
+            Raízes
         </h1>
+        <p class="text-2xl text-purple-300 mb-8">Tarot e Magia Ancestral</p>
         <p class="text-xl text-purple-300 mb-8">Bem-vindo ao nosso templo mágico</p>
         
         <!-- Informações de Atendimento -->
@@ -21,14 +24,14 @@
         </div>
     </div>
 
-    <!-- Container principal com dois botões -->
-    <div class="w-full max-w-5xl">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <!-- Container principal com três botões -->
+    <div class="w-full max-w-6xl">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <!-- Botão Tarot -->
             <a href="{% url 'escolher_tarot' %}" class="group">
                 <div class="bg-gradient-to-br from-purple-900/40 to-pink-900/40 border-2 border-purple-500/50 rounded-2xl p-8 hover:border-purple-400 hover:from-purple-900/60 hover:to-pink-900/60 transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center">
                     <div class="text-7xl mb-6 group-hover:scale-110 transition-transform">🔮</div>
-                    <h2 class="text-3xl font-bold text-purple-200 mb-3">Tiragem de Tarot</h2>
+                    <h2 class="text-3xl font-bold text-purple-200 mb-3 text-center">Tiragem de Tarot</h2>
                     <p class="text-purple-400 text-center mb-6">Descubra o que o destino reserva para você. Consulte o tarot e receba orientações mágicas.</p>
                     <div class="text-sm text-purple-300 bg-purple-900/50 px-4 py-2 rounded-lg">
                         A partir de R$ 50,00
@@ -40,12 +43,24 @@
             <a href="{% url 'escolher_intencao_feitico' %}" class="group">
                 <div class="bg-gradient-to-br from-pink-900/40 to-purple-900/40 border-2 border-pink-500/50 rounded-2xl p-8 hover:border-pink-400 hover:from-pink-900/60 hover:to-purple-900/60 transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center">
                     <div class="text-7xl mb-6 group-hover:scale-110 transition-transform">🪄</div>
-                    <h2 class="text-3xl font-bold text-pink-200 mb-3">Feitiço Personalizado</h2>
+                    <h2 class="text-3xl font-bold text-pink-200 mb-3 text-center">Feitiço Personalizado</h2>
                     <p class="text-pink-400 text-center mb-6">
                         <strong class="text-yellow-300">⚠️ Importante:</strong> Antes de realizar qualquer feitiço, é necessário fazer uma tiragem de tarot para verificar se o feitiço terá sucesso. Se não der certo, você paga apenas a intenção.
                     </p>
                     <div class="text-sm text-pink-300 bg-pink-900/50 px-4 py-2 rounded-lg">
                         Intenção: R$ 50,00 + Feitiço
+                    </div>
+                </div>
+            </a>
+
+            <!-- Botão Tarot de Acompanhamento -->
+            <a href="{% url 'escolher_tarot_acompanhamento' %}" class="group">
+                <div class="bg-gradient-to-br from-purple-900/40 to-pink-900/40 border-2 border-purple-500/50 rounded-2xl p-8 hover:border-purple-400 hover:from-purple-900/60 hover:to-pink-900/60 transition-all duration-300 cursor-pointer h-full flex flex-col items-center justify-center">
+                    <div class="text-7xl mb-6 group-hover:scale-110 transition-transform">✨</div>
+                    <h2 class="text-3xl font-bold text-purple-200 mb-3 text-center">Tiragem de Acompanhamento</h2>
+                    <p class="text-purple-400 text-center mb-6">Só para quem já é cliente do Raízes Tarot e Magia Ancestral. Acompanhe a evolução do seu feitiço.</p>
+                    <div class="text-sm text-purple-300 bg-purple-900/50 px-4 py-2 rounded-lg">
+                        R$ 50,00
                     </div>
                 </div>
             </a>

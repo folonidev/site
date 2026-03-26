@@ -44,7 +44,7 @@
                 </div>
 
                 <!-- Cards de Estatísticas por Tipo -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Intenções -->
                     <div class="bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border border-blue-500/30 rounded-xl p-4">
                         <p class="text-blue-400 text-xs font-semibold mb-1">✨ Intenções</p>
@@ -64,6 +64,13 @@
                         <p class="text-green-400 text-xs font-semibold mb-1">🪄 Feitiços</p>
                         <p class="text-3xl font-bold text-green-200">{{ feiticos_count }}</p>
                         <p class="text-xs text-green-400 mt-1">R$ {{ renda_feitico }}</p>
+                    </div>
+
+                    <!-- Acompanhamento -->
+                    <div class="bg-gradient-to-br from-pink-900/30 to-rose-900/30 border border-pink-500/30 rounded-xl p-4">
+                        <p class="text-pink-400 text-xs font-semibold mb-1">✨ Acompanhamento</p>
+                        <p class="text-3xl font-bold text-pink-200">{{ acompanhamento_count }}</p>
+                        <p class="text-xs text-pink-400 mt-1">R$ {{ renda_acompanhamento }}</p>
                     </div>
                 </div>
 
@@ -107,6 +114,19 @@
                             <canvas id="graficoFeiticoRenda"></canvas>
                         </div>
                     </div>
+
+                    <!-- Gráfico de Acompanhamento -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-gradient-to-br from-pink-900/30 to-rose-900/30 border border-pink-500/30 rounded-xl p-6">
+                            <h3 class="text-lg font-bold text-pink-200 mb-4">✨ Acompanhamento - Quantidade (30 dias)</h3>
+                            <canvas id="graficoAcompanhamentoQtd"></canvas>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-pink-900/30 to-rose-900/30 border border-pink-500/30 rounded-xl p-6">
+                            <h3 class="text-lg font-bold text-pink-200 mb-4">✨ Acompanhamento - Renda (30 dias)</h3>
+                            <canvas id="graficoAcompanhamentoRenda"></canvas>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Próximos Agendamentos -->
@@ -144,17 +164,29 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+// Dados passados do Django
 const datas = {{ datas_json|safe }};
+const intencao_qtd_data = {{ intencao_qtd_json|safe }};
+const intencao_renda_data = {{ intencao_renda_json|safe }};
+const tarot_qtd_data = {{ tarot_qtd_json|safe }};
+const tarot_renda_data = {{ tarot_renda_json|safe }};
+const feitico_qtd_data = {{ feitico_qtd_json|safe }};
+const feitico_renda_data = {{ feitico_renda_json|safe }};
+const acompanhamento_qtd_data = {{ acompanhamento_qtd_json|safe }};
+const acompanhamento_renda_data = {{ acompanhamento_renda_json|safe }};
+
+console.log('Datas:', datas);
+console.log('Intencao QTD:', intencao_qtd_data);
+console.log('Acompanhamento QTD:', acompanhamento_qtd_data);
 
 // Gráfico Intenção - Quantidade
-const ctxIntencaoQtd = document.getElementById('graficoIntencaoQtd').getContext('2d');
-new Chart(ctxIntencaoQtd, {
+new Chart(document.getElementById('graficoIntencaoQtd'), {
     type: 'bar',
     data: {
         labels: datas,
         datasets: [{
             label: 'Quantidade',
-            data: {{ intencao_qtd_json|safe }},
+            data: intencao_qtd_data,
             backgroundColor: 'rgba(59, 130, 246, 0.5)',
             borderColor: 'rgba(59, 130, 246, 1)',
             borderWidth: 2,
@@ -181,14 +213,13 @@ new Chart(ctxIntencaoQtd, {
 });
 
 // Gráfico Intenção - Renda
-const ctxIntencaoRenda = document.getElementById('graficoIntencaoRenda').getContext('2d');
-new Chart(ctxIntencaoRenda, {
+new Chart(document.getElementById('graficoIntencaoRenda'), {
     type: 'line',
     data: {
         labels: datas,
         datasets: [{
             label: 'Renda (R$)',
-            data: {{ intencao_renda_json|safe }},
+            data: intencao_renda_data,
             borderColor: 'rgba(59, 130, 246, 1)',
             backgroundColor: 'rgba(59, 130, 246, 0.1)',
             borderWidth: 2,
@@ -216,14 +247,13 @@ new Chart(ctxIntencaoRenda, {
 });
 
 // Gráfico Tarot - Quantidade
-const ctxTarotQtd = document.getElementById('graficoTarotQtd').getContext('2d');
-new Chart(ctxTarotQtd, {
+new Chart(document.getElementById('graficoTarotQtd'), {
     type: 'bar',
     data: {
         labels: datas,
         datasets: [{
             label: 'Quantidade',
-            data: {{ tarot_qtd_json|safe }},
+            data: tarot_qtd_data,
             backgroundColor: 'rgba(217, 119, 6, 0.5)',
             borderColor: 'rgba(217, 119, 6, 1)',
             borderWidth: 2,
@@ -250,14 +280,13 @@ new Chart(ctxTarotQtd, {
 });
 
 // Gráfico Tarot - Renda
-const ctxTarotRenda = document.getElementById('graficoTarotRenda').getContext('2d');
-new Chart(ctxTarotRenda, {
+new Chart(document.getElementById('graficoTarotRenda'), {
     type: 'line',
     data: {
         labels: datas,
         datasets: [{
             label: 'Renda (R$)',
-            data: {{ tarot_renda_json|safe }},
+            data: tarot_renda_data,
             borderColor: 'rgba(217, 119, 6, 1)',
             backgroundColor: 'rgba(217, 119, 6, 0.1)',
             borderWidth: 2,
@@ -285,14 +314,13 @@ new Chart(ctxTarotRenda, {
 });
 
 // Gráfico Feitiço - Quantidade
-const ctxFeiticoQtd = document.getElementById('graficoFeiticoQtd').getContext('2d');
-new Chart(ctxFeiticoQtd, {
+new Chart(document.getElementById('graficoFeiticoQtd'), {
     type: 'bar',
     data: {
         labels: datas,
         datasets: [{
             label: 'Quantidade',
-            data: {{ feitico_qtd_json|safe }},
+            data: feitico_qtd_data,
             backgroundColor: 'rgba(34, 197, 94, 0.5)',
             borderColor: 'rgba(34, 197, 94, 1)',
             borderWidth: 2,
@@ -319,14 +347,13 @@ new Chart(ctxFeiticoQtd, {
 });
 
 // Gráfico Feitiço - Renda
-const ctxFeiticoRenda = document.getElementById('graficoFeiticoRenda').getContext('2d');
-new Chart(ctxFeiticoRenda, {
+new Chart(document.getElementById('graficoFeiticoRenda'), {
     type: 'line',
     data: {
         labels: datas,
         datasets: [{
             label: 'Renda (R$)',
-            data: {{ feitico_renda_json|safe }},
+            data: feitico_renda_data,
             borderColor: 'rgba(34, 197, 94, 1)',
             backgroundColor: 'rgba(34, 197, 94, 0.1)',
             borderWidth: 2,
@@ -349,6 +376,73 @@ new Chart(ctxFeiticoRenda, {
                 grid: { color: 'rgba(134, 239, 172, 0.1)' }
             },
             x: { ticks: { color: 'rgba(134, 239, 172, 0.8)' } }
+        }
+    }
+});
+
+// Gráfico Acompanhamento - Quantidade
+new Chart(document.getElementById('graficoAcompanhamentoQtd'), {
+    type: 'bar',
+    data: {
+        labels: datas,
+        datasets: [{
+            label: 'Quantidade',
+            data: acompanhamento_qtd_data,
+            backgroundColor: 'rgba(236, 72, 153, 0.5)',
+            borderColor: 'rgba(236, 72, 153, 1)',
+            borderWidth: 2,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1,
+                    color: 'rgba(244, 114, 182, 0.8)'
+                },
+                grid: { color: 'rgba(244, 114, 182, 0.1)' }
+            },
+            x: { ticks: { color: 'rgba(244, 114, 182, 0.8)' } }
+        }
+    }
+});
+
+// Gráfico Acompanhamento - Renda
+new Chart(document.getElementById('graficoAcompanhamentoRenda'), {
+    type: 'line',
+    data: {
+        labels: datas,
+        datasets: [{
+            label: 'Renda (R$)',
+            data: acompanhamento_renda_data,
+            borderColor: 'rgba(236, 72, 153, 1)',
+            backgroundColor: 'rgba(236, 72, 153, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    color: 'rgba(244, 114, 182, 0.8)',
+                    callback: function(value) { return 'R$ ' + value.toFixed(2); }
+                },
+                grid: { color: 'rgba(244, 114, 182, 0.1)' }
+            },
+            x: { ticks: { color: 'rgba(244, 114, 182, 0.8)' } }
         }
     }
 });

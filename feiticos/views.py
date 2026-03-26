@@ -26,6 +26,21 @@ def escolher_tarot(request):
     return render(request, 'feiticos/escolher_produto.html', context)
 
 
+def escolher_tarot_acompanhamento(request):
+    """Página para agendar tarot de acompanhamento"""
+    if request.method == 'POST':
+        return agendar_produto(request)
+    
+    # Tarot de acompanhamento não tem subcategorias, apenas um tipo
+    acompanhamento = [{
+        'nome': 'Tiragem de Acompanhamento',
+        'emoji': '✨',
+        'preco': 50.00
+    }]
+    context = {'produtos': acompanhamento, 'tipo_produto': 'tarot_acompanhamento'}
+    return render(request, 'feiticos/escolher_produto.html', context)
+
+
 def escolher_intencao_feitico(request):
     """Página para escolher intenção de feitiço"""
     if request.method == 'POST':
@@ -246,16 +261,12 @@ def obter_datas_disponiveis(request):
     for i in range(60):
         data = datetime.now().date() + timedelta(days=i)
         
-        # Verificar se é dia disponível (segunda a sexta)
-        if data.weekday() not in [0, 1, 2, 3, 4]:  # Segunda a sexta
-            continue
-        
         # Verificar se há indisponibilidade marcada pelo admin
         indisponivel = IndisponibilidadeFeitico.objects.filter(data=data, indisponivel=True).exists()
         if indisponivel:
             continue
         
-        # Verificar vagas disponíveis
+        # Verificar vagas disponíveis (a função já valida dias e vagas)
         tem_vaga, _ = Agendamento.verificar_vagas_disponiveis(data, tipo_produto)
         if not tem_vaga:
             continue
@@ -300,6 +311,7 @@ def admin_painel(request):
     intencoes_count = Agendamento.objects.filter(tipo_produto='intencao_feitico', status__in=['pagamento_confirmado', 'enviar_link', 'link_enviado', 'realizado']).count()
     tarots_count = Agendamento.objects.filter(tipo_produto='tarot', status__in=['pagamento_confirmado', 'enviar_link', 'link_enviado', 'realizado']).count()
     feiticos_count = Agendamento.objects.filter(tipo_produto='feitico', status__in=['pagamento_confirmado', 'enviar_link', 'link_enviado', 'realizado']).count()
+    acompanhamento_count = Agendamento.objects.filter(tipo_produto='tarot_acompanhamento', status__in=['pagamento_confirmado', 'enviar_link', 'link_enviado', 'realizado']).count()
     
     # Renda por tipo
     renda_intencao = Agendamento.objects.filter(
@@ -317,7 +329,12 @@ def admin_painel(request):
         status__in=['pagamento_confirmado', 'enviar_link', 'link_enviado', 'realizado']
     ).aggregate(Sum('valor'))['valor__sum'] or 0
     
-    renda_total = float(renda_intencao) + float(renda_tarot) + float(renda_feitico)
+    renda_acompanhamento = Agendamento.objects.filter(
+        tipo_produto='tarot_acompanhamento',
+        status__in=['pagamento_confirmado', 'enviar_link', 'link_enviado', 'realizado']
+    ).aggregate(Sum('valor'))['valor__sum'] or 0
+    
+    renda_total = float(renda_intencao) + float(renda_tarot) + float(renda_feitico) + float(renda_acompanhamento)
     
     # Próximos agendamentos
     proximos = Agendamento.objects.filter(
@@ -325,23 +342,40 @@ def admin_painel(request):
         data_agendamento__gte=datetime.now().date()
     ).order_by('data_agendamento')[:10]
     
-    # Dados para gráficos (últimos 30 dias) - Separado por tipo
+    # Dados para gráficos - Range: hoje-7 até último agendamento, sem buracos
+    data_minima = datetime.now().date() - timedelta(days=7)
+    
+    # Buscar todos os agendamentos com status válido
+    agendamentos_para_grafico = Agendamento.objects.filter(
+        status__in=['pagamento_confirmado', 'enviar_link', 'link_enviado', 'realizado']
+    ).order_by('data_agendamento')
+    
+    # Determinar data máxima
+    if agendamentos_para_grafico.exists():
+        data_maxima = agendamentos_para_grafico.last().data_agendamento
+        # Se a data máxima for menor que hoje-7, usar hoje
+        if data_maxima < data_minima:
+            data_maxima = datetime.now().date()
+    else:
+        data_maxima = datetime.now().date()
+    
+    # Criar dicionários para cada tipo de produto
     datas_dict_intencao = {}
     datas_dict_tarot = {}
     datas_dict_feitico = {}
+    datas_dict_acompanhamento = {}
     
-    for i in range(30):
-        data = datetime.now().date() - timedelta(days=29-i)
-        datas_dict_intencao[data] = {'quantidade': 0, 'renda': 0}
-        datas_dict_tarot[data] = {'quantidade': 0, 'renda': 0}
-        datas_dict_feitico[data] = {'quantidade': 0, 'renda': 0}
+    # Preencher dicionários com todas as datas no range (sem buracos)
+    data_atual = data_minima
+    while data_atual <= data_maxima:
+        datas_dict_intencao[data_atual] = {'quantidade': 0, 'renda': 0}
+        datas_dict_tarot[data_atual] = {'quantidade': 0, 'renda': 0}
+        datas_dict_feitico[data_atual] = {'quantidade': 0, 'renda': 0}
+        datas_dict_acompanhamento[data_atual] = {'quantidade': 0, 'renda': 0}
+        data_atual += timedelta(days=1)
     
-    agendamentos_30 = Agendamento.objects.filter(
-        status__in=['pagamento_confirmado', 'enviar_link', 'link_enviado', 'realizado'],
-        data_agendamento__gte=datetime.now().date() - timedelta(days=30)
-    )
-    
-    for ag in agendamentos_30:
+    # Preencher dados dos agendamentos
+    for ag in agendamentos_para_grafico:
         if ag.tipo_produto == 'intencao_feitico' and ag.data_agendamento in datas_dict_intencao:
             datas_dict_intencao[ag.data_agendamento]['quantidade'] += 1
             datas_dict_intencao[ag.data_agendamento]['renda'] += float(ag.valor)
@@ -351,8 +385,11 @@ def admin_painel(request):
         elif ag.tipo_produto == 'feitico' and ag.data_agendamento in datas_dict_feitico:
             datas_dict_feitico[ag.data_agendamento]['quantidade'] += 1
             datas_dict_feitico[ag.data_agendamento]['renda'] += float(ag.valor)
+        elif ag.tipo_produto == 'tarot_acompanhamento' and ag.data_agendamento in datas_dict_acompanhamento:
+            datas_dict_acompanhamento[ag.data_agendamento]['quantidade'] += 1
+            datas_dict_acompanhamento[ag.data_agendamento]['renda'] += float(ag.valor)
     
-    # Gerar dados para os últimos 30 dias
+    # Gerar dados para o range de datas (sem buracos)
     datas_lista = []
     intencao_qtd = []
     intencao_renda = []
@@ -360,19 +397,26 @@ def admin_painel(request):
     tarot_renda = []
     feitico_qtd = []
     feitico_renda = []
+    acompanhamento_qtd = []
+    acompanhamento_renda = []
     
-    for i in range(29, -1, -1):
-        data = datetime.now().date() - timedelta(days=i)
-        datas_lista.append(data.strftime('%d/%m'))
+    data_atual = data_minima
+    while data_atual <= data_maxima:
+        datas_lista.append(data_atual.strftime('%d/%m'))
         
-        intencao_qtd.append(datas_dict_intencao.get(data, {}).get('quantidade', 0))
-        intencao_renda.append(float(datas_dict_intencao.get(data, {}).get('renda', 0)))
+        intencao_qtd.append(datas_dict_intencao.get(data_atual, {}).get('quantidade', 0))
+        intencao_renda.append(float(datas_dict_intencao.get(data_atual, {}).get('renda', 0)))
         
-        tarot_qtd.append(datas_dict_tarot.get(data, {}).get('quantidade', 0))
-        tarot_renda.append(float(datas_dict_tarot.get(data, {}).get('renda', 0)))
+        tarot_qtd.append(datas_dict_tarot.get(data_atual, {}).get('quantidade', 0))
+        tarot_renda.append(float(datas_dict_tarot.get(data_atual, {}).get('renda', 0)))
         
-        feitico_qtd.append(datas_dict_feitico.get(data, {}).get('quantidade', 0))
-        feitico_renda.append(float(datas_dict_feitico.get(data, {}).get('renda', 0)))
+        feitico_qtd.append(datas_dict_feitico.get(data_atual, {}).get('quantidade', 0))
+        feitico_renda.append(float(datas_dict_feitico.get(data_atual, {}).get('renda', 0)))
+        
+        acompanhamento_qtd.append(datas_dict_acompanhamento.get(data_atual, {}).get('quantidade', 0))
+        acompanhamento_renda.append(float(datas_dict_acompanhamento.get(data_atual, {}).get('renda', 0)))
+        
+        data_atual += timedelta(days=1)
     
     datas_json = json.dumps(datas_lista)
     intencao_qtd_json = json.dumps(intencao_qtd)
@@ -381,15 +425,19 @@ def admin_painel(request):
     tarot_renda_json = json.dumps(tarot_renda)
     feitico_qtd_json = json.dumps(feitico_qtd)
     feitico_renda_json = json.dumps(feitico_renda)
+    acompanhamento_qtd_json = json.dumps(acompanhamento_qtd)
+    acompanhamento_renda_json = json.dumps(acompanhamento_renda)
     
     context = {
         'total_agendamentos': total_agendamentos,
         'intencoes_count': intencoes_count,
         'tarots_count': tarots_count,
         'feiticos_count': feiticos_count,
+        'acompanhamento_count': acompanhamento_count,
         'renda_intencao': f"{renda_intencao:.2f}",
         'renda_tarot': f"{renda_tarot:.2f}",
         'renda_feitico': f"{renda_feitico:.2f}",
+        'renda_acompanhamento': f"{renda_acompanhamento:.2f}",
         'renda_total': f"{renda_total:.2f}",
         'proximos': proximos,
         'datas_json': datas_json,
@@ -399,6 +447,8 @@ def admin_painel(request):
         'tarot_renda_json': tarot_renda_json,
         'feitico_qtd_json': feitico_qtd_json,
         'feitico_renda_json': feitico_renda_json,
+        'acompanhamento_qtd_json': acompanhamento_qtd_json,
+        'acompanhamento_renda_json': acompanhamento_renda_json,
     }
     
     return render(request, 'feiticos/admin/painel.html', context)
@@ -419,10 +469,12 @@ def admin_agendamentos(request):
         agendamentos = agendamentos.filter(tipo_produto=tipo_filter)
     
     status_choices = Agendamento.STATUS_CHOICES
+    tipo_choices = Agendamento.TIPO_PRODUTO_CHOICES
     
     context = {
         'agendamentos': agendamentos,
         'status_choices': status_choices,
+        'tipo_choices': tipo_choices,
         'status_filter': status_filter,
         'tipo_filter': tipo_filter,
     }

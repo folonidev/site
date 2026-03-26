@@ -5,6 +5,7 @@ urlpatterns = [
     # URLs públicas - Home e escolha
     path('', views.index, name='index'),
     path('escolher-tarot/', views.escolher_tarot, name='escolher_tarot'),
+    path('escolher-tarot-acompanhamento/', views.escolher_tarot_acompanhamento, name='escolher_tarot_acompanhamento'),
     path('escolher-intencao/', views.escolher_intencao_feitico, name='escolher_intencao_feitico'),
     
     # URLs públicas - Agendamento

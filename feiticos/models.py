@@ -5,7 +5,8 @@ import uuid
 
 # Constantes de vagas
 VAGAS_FEITICO = 3
-VAGAS_TAROT = 10
+VAGAS_TAROT = 10  # Compartilhadas entre tarot e intenção
+VAGAS_ACOMPANHAMENTO = 10  # Exclusivas para tarot de acompanhamento (apenas sexta)
 
 # Dias disponíveis: segunda a quinta (0-3) e sexta (4)
 DIAS_DISPONIVEIS = [0, 1, 2, 3, 4]  # Segunda a sexta
@@ -94,6 +95,7 @@ class Agendamento(models.Model):
     
     TIPO_PRODUTO_CHOICES = [
         ('tarot', 'Tiragem de Tarot'),
+        ('tarot_acompanhamento', 'Tiragem de Acompanhamento'),
         ('intencao_feitico', 'Intenção de Feitiço'),
         ('feitico', 'Feitiço'),
     ]
@@ -179,10 +181,6 @@ class Agendamento(models.Model):
     @staticmethod
     def verificar_vagas_disponiveis(data, tipo_produto):
         """Verifica se há vagas disponíveis para um tipo de produto em uma data"""
-        # Verificar se é dia válido
-        if data.weekday() not in DIAS_DISPONIVEIS:
-            return False, "Atendimento apenas de segunda a sexta"
-        
         # Verificar indisponibilidade
         try:
             indisp = IndisponibilidadeFeitico.objects.get(data=data)
@@ -191,16 +189,30 @@ class Agendamento(models.Model):
         except IndisponibilidadeFeitico.DoesNotExist:
             pass
         
-        # Feitiço final: 3 vagas exclusivas
+        # Tarot de acompanhamento: APENAS SEXTA (dia 4)
+        if tipo_produto == 'tarot_acompanhamento':
+            if data.weekday() != 4:  # 4 = sexta-feira
+                return False, "Tiragem de acompanhamento disponível apenas na sexta-feira"
+            vagas_usadas = Agendamento.contar_vagas_usadas(data, 'tarot_acompanhamento')
+            vagas_disponiveis = VAGAS_ACOMPANHAMENTO - vagas_usadas
+            if vagas_disponiveis <= 0:
+                return False, "Sem vagas disponíveis para acompanhamento nesta sexta"
+            return True, f"{vagas_disponiveis} vagas disponíveis"
+        
+        # Feitiço final: 3 vagas exclusivas (segunda a sexta)
         if tipo_produto == 'feitico':
+            if data.weekday() not in DIAS_DISPONIVEIS:
+                return False, "Atendimento apenas de segunda a sexta"
             vagas_usadas = Agendamento.contar_vagas_usadas(data, 'feitico')
             vagas_disponiveis = VAGAS_FEITICO - vagas_usadas
             if vagas_disponiveis <= 0:
                 return False, "Sem vagas disponíveis para feitiços nesta data"
             return True, f"{vagas_disponiveis} vagas disponíveis"
         
-        # Tarot e Intenção: compartilham 10 vagas
+        # Tarot e Intenção: compartilham 10 vagas (segunda a sexta)
         if tipo_produto in ['tarot', 'intencao_feitico']:
+            if data.weekday() not in DIAS_DISPONIVEIS:
+                return False, "Atendimento apenas de segunda a sexta"
             vagas_tarot = Agendamento.contar_vagas_usadas(data, 'tarot')
             vagas_intencao = Agendamento.contar_vagas_usadas(data, 'intencao_feitico')
             vagas_usadas = vagas_tarot + vagas_intencao
