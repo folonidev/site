@@ -799,17 +799,8 @@ def webhook_mercado_pago(request):
         print(f"  - data_id (final): {data_id}")
         print("="*80 + "\n")
         
-        # Salvar webhook bruto no banco
-        webhook = WebhookMercadoPago.objects.create(
-            topic=topic,
-            payload=payload,
-            status='recebido'
-        )
-        
         # Se for notificação de pagamento
         if topic == 'payment' and data_id:
-            webhook.payment_id = data_id
-            webhook.save()
             
             # Verificar status do pagamento via GET
             print("\n" + "="*80)
@@ -874,16 +865,22 @@ def webhook_mercado_pago(request):
                         enviar_email_confirmacao_pagamento(agendamento, 'rejected')
                     
                     agendamento.save()
-                    webhook.status = 'processado'
-                    webhook.processado_em = datetime.now()
+                    # Salvar webhook APENAS se processado com sucesso
+                    webhook = WebhookMercadoPago.objects.create(
+                        topic=topic,
+                        payload=payload,
+                        payment_id=data_id,
+                        external_reference=external_reference,
+                        payment_status=payment_status,
+                        agendamento=agendamento,
+                        status='processado',
+                        processado_em=datetime.now()
+                    )
+                    print(f"[WEBHOOK] Webhook salvo com sucesso: {webhook.id}")
                 else:
-                    webhook.status = 'erro'
-                    webhook.erro_mensagem = f'Agendamento não encontrado para external_reference: {external_reference}'
+                    print(f"[WEBHOOK] Agendamento nao encontrado para external_reference: {external_reference}")
             else:
-                webhook.status = 'erro'
-                webhook.erro_mensagem = 'Não foi possível verificar status do pagamento'
-            
-            webhook.save()
+                print(f"[WEBHOOK] Nao foi possivel verificar status do pagamento")
         
         return JsonResponse({'status': 'ok'}, status=200)
     
