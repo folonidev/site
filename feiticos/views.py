@@ -759,13 +759,56 @@ def pagamento_processando(request):
         messages.error(request, 'Agendamento não encontrado.')
         return redirect('index')
     
+    # Mapear status do banco para exibição
+    status_db = agendamento.status
+    if status_db == 'pagamento_confirmado':
+        status = 'approved'
+        status_info = {
+            'titulo': 'Pagamento Confirmado!',
+            'mensagem': 'Seu pagamento foi aprovado com sucesso.',
+            'descricao': 'A transação foi processada e confirmada pelo Mercado Pago.',
+        }
+    elif status_db == 'pagamento_recusado':
+        status = 'rejected'
+        status_info = {
+            'titulo': 'Pagamento Recusado',
+            'mensagem': 'Infelizmente seu pagamento não foi aprovado.',
+            'descricao': 'A transação foi recusada pelo Mercado Pago. Caso tenha dúvidas, entre em contato conosco.',
+        }
+    elif status_db == 'cancelado':
+        status = 'cancelled'
+        status_info = {
+            'titulo': 'Pagamento Cancelado',
+            'mensagem': 'O pagamento foi cancelado.',
+            'descricao': 'A transação foi cancelada. Caso tenha dúvidas, entre em contato conosco.',
+        }
+    elif status_db == 'pendente':
+        status = 'pending'
+        status_info = {
+            'titulo': 'Pagamento Pendente',
+            'mensagem': 'Seu pagamento está sendo processado...',
+            'descricao': 'O Mercado Pago está processando sua transação. Aguarde alguns instantes.',
+        }
+    else:
+        # aguardando_ml ou qualquer outro status
+        status = 'pending'
+        status_info = {
+            'titulo': 'Aguardando Confirmação',
+            'mensagem': 'Estamos aguardando a confirmação do Mercado Pago...',
+            'descricao': 'Seu pagamento foi enviado e estamos aguardando o retorno do Mercado Pago.',
+        }
+    
     context = {
         'agendamento': agendamento,
+        'nome': agendamento.nome,
         'email': agendamento.email,
         'nome_produto': agendamento.nome_produto,
         'valor': agendamento.valor,
         'data_agendamento': agendamento.data_agendamento,
         'external_reference': agendamento.external_reference,
+        'payment_id': payment_id,
+        'status': status,
+        'status_info': status_info,
     }
     
     return render(request, 'feiticos/pagamento_redirect.html', context)
@@ -860,11 +903,7 @@ def webhook_mercado_pago(request):
                     elif novo_status == 'pagamento_recusado':
                         # Enviar email de falha
                         enviar_email_confirmacao_pagamento(agendamento, 'rejected')
-                    else:
-                        print("caiu no else")
-                        print(f"novo status {novo_status}")
-                        print(f"status original: {payment_status}")
-
+                    
                     agendamento.save()
                     # Salvar webhook APENAS se processado com sucesso
                     webhook = WebhookMercadoPago.objects.create(
