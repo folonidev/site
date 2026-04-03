@@ -837,9 +837,6 @@ def webhook_mercado_pago(request):
                 agendamento = Agendamento.objects.filter(external_reference=external_reference).first()
                 
                 if agendamento:
-                    webhook.agendamento = agendamento
-                    webhook.payment_status = payment_status
-                    
                     # Mapear status
                     novo_status = mapear_status_mp_para_agendamento(payment_status)
                     agendamento.status = novo_status
@@ -863,7 +860,11 @@ def webhook_mercado_pago(request):
                     elif novo_status == 'pagamento_recusado':
                         # Enviar email de falha
                         enviar_email_confirmacao_pagamento(agendamento, 'rejected')
-                    
+                    else:
+                        print("caiu no else")
+                        print(f"novo status {novo_status}")
+                        print(f"status original: {payment_status}")
+
                     agendamento.save()
                     # Salvar webhook APENAS se processado com sucesso
                     webhook = WebhookMercadoPago.objects.create(
@@ -872,11 +873,10 @@ def webhook_mercado_pago(request):
                         payment_id=data_id,
                         external_reference=external_reference,
                         payment_status=payment_status,
-                        agendamento=agendamento,
                         status='processado',
                         processado_em=datetime.now()
                     )
-                    print(f"[WEBHOOK] Webhook salvo com sucesso: {webhook.id}")
+                    print(f"[WEBHOOK] Webhook salvo com sucesso")
                 else:
                     print(f"[WEBHOOK] Agendamento nao encontrado para external_reference: {external_reference}")
             else:
