@@ -804,15 +804,27 @@ def webhook_mercado_pago(request):
             webhook.save()
             
             # Verificar status do pagamento via GET
+            print("\n" + "="*80)
+            print(f"[WEBHOOK] CHAMANDO verificar_status_pagamento com payment_id: {data_id}")
+            print("="*80 + "\n")
+            
             payment_data = verificar_status_pagamento(data_id)
+            
+            print("\n" + "="*80)
+            print(f"[WEBHOOK] RESPOSTA COMPLETA DO MERCADO PAGO:")
+            print("="*80)
+            print(f"payment_data = {payment_data}")
+            print("="*80 + "\n")
             
             if payment_data:
                 external_reference = payment_data.get('external_reference')
                 payment_status = payment_data.get('status')
                 
-                # 🔍 DEBUG: Imprimir o status recebido do Mercado Livre
+                # 🔍 DEBUG: Imprimir extracoes de dados
                 print("\n" + "="*80)
-                print(f"[WEBHOOK] STATUS RECEBIDO DO MERCADO LIVRE: {payment_status}")
+                print(f"[WEBHOOK] EXTRACAO DE DADOS:")
+                print(f"  - external_reference: {external_reference}")
+                print(f"  - payment_status: {payment_status}")
                 print("="*80 + "\n")
                 
                 # Encontrar agendamento

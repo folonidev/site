@@ -46,7 +46,7 @@ def enviar_email_confirmacao_pagamento(agendamento, status_pagamento):
         msg = MIMEMultipart('alternative')
         msg['Subject'] = f"Status do Pagamento - {agendamento.nome_produto}"
         msg['From'] = EMAIL_FROM
-        msg['To'] = "gabroloni@hotmail.com"
+        msg['To'] = agendamento.email
         
         # Corpo do email em HTML
         html = f"""

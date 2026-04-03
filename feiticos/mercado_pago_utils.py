@@ -69,10 +69,29 @@ def criar_preferencia_mercado_pago(agendamento, back_url_override=None):
             preference_data["notification_url"] = notification_url
         
         # Criar preferência
+        print("\n" + "="*80)
+        print(f"[MP_API] Criando preferencia com external_reference: {agendamento.external_reference}")
+        print(f"[MP_API] Dados enviados:")
+        print(f"  - external_reference: {preference_data.get('external_reference')}")
+        print(f"  - valor: {preference_data['items'][0]['unit_price']}")
+        print("="*80 + "\n")
+        
         preference_response = sdk.preference().create(preference_data)
         
+        print("\n" + "="*80)
+        print(f"[MP_API] Status HTTP: {preference_response['status']}")
+        print(f"[MP_API] Response completo:")
+        print(preference_response)
+        print("="*80 + "\n")
+        
         if preference_response["status"] == 201:
-            response = preference_response["response"]            
+            response = preference_response["response"]
+            print("\n" + "="*80)
+            print(f"[MP_API] Preferencia criada com sucesso!")
+            print(f"  - id: {response.get('id')}")
+            print(f"  - external_reference: {response.get('external_reference')}")
+            print(f"  - init_point: {response.get('init_point')}")
+            print("="*80 + "\n")
             return response
         else:
             print(f"Erro ao criar preferência: {preference_response}")
@@ -96,10 +115,32 @@ def verificar_status_pagamento(payment_id):
     try:
         sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
         
+        print("\n" + "="*80)
+        print(f"[MP_API] Chamando sdk.payment().get({payment_id})")
+        print("="*80 + "\n")
+        
         payment_response = sdk.payment().get(payment_id)
         
+        print("\n" + "="*80)
+        print(f"[MP_API] Status HTTP: {payment_response['status']}")
+        print(f"[MP_API] Response completo:")
+        print(payment_response)
+        print("="*80 + "\n")
+        
         if payment_response["status"] == 200:
-            return payment_response["response"]
+            response_data = payment_response["response"]
+            print("\n" + "="*80)
+            print(f"[MP_API] TODOS OS CAMPOS DA RESPOSTA:")
+            print("="*80)
+            for key, value in response_data.items():
+                print(f"  {key}: {value}")
+            print("="*80)
+            print(f"[MP_API] Dados extraidos:")
+            print(f"  - external_reference: {response_data.get('external_reference')}")
+            print(f"  - status: {response_data.get('status')}")
+            print(f"  - id: {response_data.get('id')}")
+            print("="*80 + "\n")
+            return response_data
         else:
             print(f"Erro ao verificar pagamento: {payment_response}")
             return None
