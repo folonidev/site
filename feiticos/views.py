@@ -129,7 +129,8 @@ def agendar_produto(request):
                 nome_produto=nome_produto,
                 data_agendamento=data_obj,
                 valor=preco,
-                status='pendente'
+                status='pendente',
+                external_reference=str(uuid.uuid4())
             )
             return redirect('pagamento', pk=agendamento.id)
         except Exception as db_err:
@@ -168,11 +169,6 @@ def confirmar_pagamento(request, pk):
         if not agendamento:
             messages.error(request, 'Agendamento não encontrado.')
             return redirect('index')
-        
-        # Gerar external_reference se não existir
-        if not agendamento.external_reference:
-            agendamento.external_reference = str(uuid.uuid4())
-            agendamento.save()
         
         # Atualizar status para aguardando_ml
         agendamento.status = 'aguardando_ml'
@@ -278,7 +274,8 @@ def agendar_feitico(request, token):
             data_agendamento=data_obj,
             valor=preco,
             status='pendente',
-            intencao_relacionada=intencao
+            intencao_relacionada=intencao,
+            external_reference=str(uuid.uuid4())
         )
         
         return redirect('pagamento', pk=agendamento.id)
