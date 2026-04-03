@@ -131,7 +131,6 @@ def agendar_produto(request):
                 valor=preco,
                 status='pendente'
             )
-
             return redirect('pagamento', pk=agendamento.id)
         except Exception as db_err:
             # Log detalhado no console do servidor
@@ -750,25 +749,29 @@ def admin_gerenciar_produtos(request):
 
 
 def pagamento_processando(request):
-    """Página de processamento de pagamento - genérica ou com dados do usuário"""
-    # Extrair external_reference da query string (enviado pelo Mercado Pago)
+    """Página de redirecionamento após retorno do Mercado Pago"""
+    # Extrair dados da URL se disponível
     external_reference = request.GET.get('external_reference')
+    payment_id = request.GET.get('payment_id')
     
     agendamento = None
-    tem_dados_usuario = False
-    
-    # Se houver external_reference, buscar agendamento para mostrar dados
     if external_reference:
         agendamento = Agendamento.objects.filter(external_reference=external_reference).first()
-        if agendamento:
-            tem_dados_usuario = True
+    
+    if not agendamento:
+        messages.error(request, 'Agendamento não encontrado.')
+        return redirect('index')
     
     context = {
-        'tem_dados_usuario': tem_dados_usuario,
         'agendamento': agendamento,
+        'email': agendamento.email,
+        'nome_produto': agendamento.nome_produto,
+        'valor': agendamento.valor,
+        'data_agendamento': agendamento.data_agendamento,
+        'external_reference': agendamento.external_reference,
     }
     
-    return render(request, 'feiticos/pagamento_processando.html', context)
+    return render(request, 'feiticos/pagamento_redirect.html', context)
 
 
 @csrf_exempt
@@ -776,6 +779,13 @@ def pagamento_processando(request):
 def webhook_mercado_pago(request):
     """Endpoint para receber webhooks do Mercado Pago"""
     try:
+        # 🔍 DEBUG: Imprimir o body completo do webhook
+        print("\n" + "="*80)
+        print("[WEBHOOK] BODY RECEBIDO DO MERCADO PAGO:")
+        print("="*80)
+        print(request.body.decode('utf-8'))
+        print("="*80 + "\n")
+        
         # Extrair dados do webhook
         payload = json.loads(request.body)
         
@@ -803,6 +813,11 @@ def webhook_mercado_pago(request):
                 external_reference = payment_data.get('external_reference')
                 payment_status = payment_data.get('status')
                 
+                # 🔍 DEBUG: Imprimir o status recebido do Mercado Livre
+                print("\n" + "="*80)
+                print(f"[WEBHOOK] STATUS RECEBIDO DO MERCADO LIVRE: {payment_status}")
+                print("="*80 + "\n")
+                
                 # Encontrar agendamento
                 agendamento = Agendamento.objects.filter(external_reference=external_reference).first()
                 
@@ -815,7 +830,7 @@ def webhook_mercado_pago(request):
                     agendamento.status = novo_status
                     agendamento.mercado_pago_payment_id = data_id
                     
-                    # ✅ ENVIAR EMAIL BASEADO NO STATUS
+                    # Enviar email SEMPRE, independentemente do status
                     from .email_utils import enviar_email_confirmacao_pagamento
                     
                     if novo_status == 'pagamento_confirmado':
@@ -826,11 +841,11 @@ def webhook_mercado_pago(request):
                         # Enviar email de sucesso
                         enviar_email_confirmacao_pagamento(agendamento, 'approved')
                     
-                    elif novo_status == 'pagamento_pendente':
+                    elif novo_status == 'pendente':
                         # Enviar email de processando
                         enviar_email_confirmacao_pagamento(agendamento, 'pending')
                     
-                    elif novo_status in ['pagamento_recusado', 'pagamento_cancelado']:
+                    elif novo_status == 'pagamento_recusado':
                         # Enviar email de falha
                         enviar_email_confirmacao_pagamento(agendamento, 'rejected')
                     

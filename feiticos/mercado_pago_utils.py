@@ -152,15 +152,15 @@ def mapear_status_mp_para_agendamento(status_mp):
         str com o status do agendamento
     """
     mapeamento = {
-        'approved': 'pagamento_confirmado',
-        'pending': 'aguardando_ml',
-        'authorized': 'aguardando_ml',
-        'in_process': 'aguardando_ml',
-        'in_mediation': 'aguardando_ml',
-        'rejected': 'pagamento_recusado',
-        'cancelled': 'pagamento_recusado',
-        'refunded': 'pagamento_recusado',
-        'charged_back': 'pagamento_recusado',
+        'approved': 'pagamento_confirmado',  # Verde - Pagamento confirmado
+        'pending': 'pendente',  # Amarelo - Aguardando processamento
+        'authorized': 'pendente',  # Amarelo - Autorizado mas não capturado
+        'in_process': 'pendente',  # Amarelo - Em processamento
+        'in_mediation': 'pendente',  # Amarelo - Em mediação
+        'rejected': 'pagamento_recusado',  # Vermelho - Pagamento recusado
+        'cancelled': 'pagamento_recusado',  # Vermelho - Cancelado
+        'refunded': 'pagamento_recusado',  # Vermelho - Reembolsado
+        'charged_back': 'pagamento_recusado',  # Vermelho - Chargeback
     }
     
-    return mapeamento.get(status_mp, 'aguardando_ml')
+    return mapeamento.get(status_mp, 'pendente')  # Padrão: amarelo (pendente)
