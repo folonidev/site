@@ -825,6 +825,13 @@ def webhook_mercado_pago(request):
             print("="*80 + "\n")
             
             if payment_data:
+                # 🔍 DEBUG: Imprimir TODOS os campos
+                print("\n" + "="*80)
+                print(f"[WEBHOOK] TODOS OS CAMPOS:")
+                for key, value in payment_data.items():
+                    print(f"  {key}: {value}")
+                print("="*80 + "\n")
+                
                 external_reference = payment_data.get('external_reference')
                 payment_status = payment_data.get('status')
                 
