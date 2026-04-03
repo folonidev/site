@@ -789,7 +789,15 @@ def webhook_mercado_pago(request):
         # Extrair informações relevantes
         topic = payload.get('topic')
         resource = payload.get('resource')
-        data_id = payload.get('data', {}).get('id')
+        # Tentar extrair data_id de diferentes formatos de webhook
+        data_id = payload.get('data', {}).get('id') or payload.get('resource')
+        
+        print("\n" + "="*80)
+        print(f"[WEBHOOK] EXTRACOES INICIAIS:")
+        print(f"  - topic: {topic}")
+        print(f"  - resource: {resource}")
+        print(f"  - data_id (final): {data_id}")
+        print("="*80 + "\n")
         
         # Salvar webhook bruto no banco
         webhook = WebhookMercadoPago.objects.create(
