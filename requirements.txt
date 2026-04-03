@@ -19,3 +19,5 @@ dnspython==2.4.2
 
 # Utilities
 pytz==2024.1
+
+gunicorn==23.0.0
