@@ -33,9 +33,6 @@ def criar_preferencia_mercado_pago(agendamento, back_url_override=None):
     try:
         sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
         
-        # Usar URL de retorno customizada ou padrão
-        back_url = back_url_override or LOCAL_BACK_URL
-        
         # Preparar dados da preferência
         preference_data = {
             "items": [
