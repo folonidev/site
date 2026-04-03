@@ -1,6 +1,6 @@
 {% extends 'feiticos/base.html' %}
 
-{% block title %}Escolha seu Feitiço - Feitiçaria Online{% endblock %}
+{% block title %}Escolha seu Feitiço - Raízes Tarot e Magia Ancestral{% endblock %}
 
 {% block content %}
 <div class="min-h-screen flex flex-col items-center justify-center p-4 py-12 bg-gradient-to-br from-purple-950 via-black to-pink-950">
@@ -105,7 +105,7 @@ function atualizarPreco() {
     if (option.value) {
         const preco = parseFloat(option.getAttribute('data-preco'));
         const emoji = option.getAttribute('data-emoji');
-        const nome = option.text.split(' - ')[0].trim();
+        const nome = option.value; // Usar option.value em vez de option.text
         
         document.getElementById('resumo_feitico').textContent = emoji + ' ' + nome + ' - R$ ' + preco.toFixed(2);
         document.getElementById('resumo_total').textContent = 'R$ ' + preco.toFixed(2);

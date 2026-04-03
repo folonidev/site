@@ -168,7 +168,7 @@ function atualizarProduto() {
     if (option.value) {
         const preco = parseFloat(option.getAttribute('data-preco'));
         const emoji = option.getAttribute('data-emoji');
-        const nome = option.text.replace(emoji + ' ', '').split(' - ')[0];
+        const nome = option.value; // Usar option.value em vez de option.text
         
         document.getElementById('nome_produto').value = nome;
         document.getElementById('valor').value = preco.toString();

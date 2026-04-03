@@ -1,0 +1,149 @@
+{% extends 'feiticos/base.html' %}
+
+{% block title %}Status do Pagamento - Raízes Tarot e Magia Ancestral{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-purple-950 via-black to-pink-950">
+    <!-- Container principal -->
+    <div class="w-full max-w-2xl">
+        
+        <!-- Card de status -->
+        <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-2xl p-8 text-center">
+            
+            <!-- Ícone de status -->
+            <div class="mb-8">
+                <div class="inline-block">
+                    {% if status == 'approved' %}
+                        <!-- Ícone de sucesso -->
+                        <div class="text-6xl animate-bounce">✅</div>
+                    {% elif status == 'rejected' or status == 'cancelled' %}
+                        <!-- Ícone de erro -->
+                        <div class="text-6xl animate-pulse">❌</div>
+                    {% else %}
+                        <!-- Ícone de processamento -->
+                        <svg class="w-24 h-24 text-purple-400 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Título dinâmico -->
+            <h1 class="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                {{ status_info.titulo }}
+            </h1>
+
+            <!-- Mensagem principal -->
+            <p class="text-purple-300 text-lg mb-6">
+                {{ status_info.mensagem }}
+            </p>
+
+            <!-- Status detalhado -->
+            <div class="bg-black/20 rounded-lg p-6 border border-purple-500/20 mb-8">
+                <p class="text-purple-200 mb-4">
+                    <strong>Status:</strong> 
+                    {% if status == 'approved' %}
+                        <span class="text-green-400 font-bold">APROVADO ✅</span>
+                    {% elif status == 'rejected' %}
+                        <span class="text-red-400 font-bold">RECUSADO ❌</span>
+                    {% elif status == 'cancelled' %}
+                        <span class="text-red-400 font-bold">CANCELADO ❌</span>
+                    {% else %}
+                        <span class="text-yellow-400 font-bold">PENDENTE ⏳</span>
+                    {% endif %}
+                </p>
+                <p class="text-purple-300 text-sm">
+                    {{ status_info.descricao }}
+                </p>
+            </div>
+
+            <!-- Seção de email - IMPORTANTE -->
+            <div class="bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-2 border-yellow-500/50 rounded-lg p-6 mb-8">
+                <h2 class="text-xl font-semibold text-yellow-300 mb-4">📧 Email de Confirmação</h2>
+                <p class="text-yellow-200 mb-4">
+                    Um email foi enviado para <strong>{{ email }}</strong> com os detalhes do seu pagamento.
+                </p>
+                <p class="text-yellow-300 text-sm mb-4">
+                    <strong>⚠️ Importante:</strong> Verifique sua pasta de <strong>SPAM</strong> ou <strong>PROMOÇÕES</strong> caso não receba o email em alguns minutos.
+                </p>
+                <p class="text-yellow-200 text-xs">
+                    O email contém:
+                    <br>✓ Status do pagamento
+                    <br>✓ Detalhes do pedido
+                    {% if status == 'approved' %}
+                    <br>✓ Link para acessar seu feitiço
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- Informações do pedido -->
+            <div class="bg-black/20 rounded-lg p-6 border border-purple-500/20 mb-8">
+                <h3 class="text-lg font-semibold text-purple-300 mb-4">📋 Resumo do Pedido</h3>
+                <div class="space-y-2 text-purple-300 text-sm">
+                    <p><strong>Produto:</strong> {{ nome_produto }}</p>
+                    <p><strong>Valor:</strong> <span class="text-pink-400 font-bold">R$ {{ valor|floatformat:2 }}</span></p>
+                    <p><strong>Data do Agendamento:</strong> {{ data_agendamento|date:"d/m/Y" }}</p>
+                    <p><strong>Referência:</strong> <span class="text-gray-400 text-xs font-mono">{{ external_reference }}</span></p>
+                    {% if payment_id %}
+                    <p><strong>ID do Pagamento:</strong> <span class="text-gray-400 text-xs font-mono">{{ payment_id }}</span></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Mensagem informativa -->
+            <div class="bg-purple-900/20 rounded-lg p-6 border border-purple-500/20 mb-8">
+                <p class="text-purple-300 text-sm leading-relaxed">
+                    {% if status == 'approved' %}
+                        Seu pagamento foi processado com sucesso! Você receberá um email com o link para acessar seu feitiço em breve.
+                        <br><br>
+                        <strong>Você pode fechar esta página com segurança.</strong> Seu acesso já está ativado.
+                    {% elif status == 'pending' %}
+                        Seu pagamento está sendo processado pelo Mercado Pago. O status será atualizado em tempo real assim que a transação for confirmada.
+                        <br><br>
+                        <strong>Você pode fechar esta página com segurança.</strong> O processamento continuará em segundo plano.
+                    {% else %}
+                        Seu pagamento foi {{ status }}. Se acredita que foi um erro, tente novamente ou entre em contato conosco.
+                        <br><br>
+                        <strong>Você pode tentar novamente a qualquer momento.</strong>
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- Botões de ação -->
+            <div class="flex gap-4 flex-col sm:flex-row">
+                <a href="{% url 'index' %}" class="flex-1 py-3 px-4 bg-purple-900/50 hover:bg-purple-800 text-purple-200 font-bold rounded-lg transition text-center">
+                    🏠 Voltar para Home
+                </a>
+                <a href="mailto:{{ email }}" class="flex-1 py-3 px-4 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white font-bold rounded-lg transition text-center">
+                    📧 Verificar Email
+                </a>
+                {% if status != 'approved' %}
+                <a href="{% url 'escolher_tarot' %}" class="flex-1 py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg transition text-center">
+                    🔄 Tentar Novamente
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Rodapé com informações -->
+            <div class="mt-8 pt-6 border-t border-purple-500/20">
+                <p class="text-purple-400 text-xs mb-2">
+                    Dúvidas? Entre em contato conosco através do email de confirmação.
+                </p>
+                <p class="text-purple-500 text-xs">
+                    Status: <strong>{{ status|upper }}</strong> | Referência: <strong>{{ external_reference }}</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh a cada 10 segundos para verificar atualizações de status
+{% if status == 'pending' %}
+setTimeout(function() {
+    location.reload();
+}, 10000);
+{% endif %}
+</script>
+{% endblock %}

@@ -1,4 +1,5 @@
 {% extends 'feiticos/admin/base_admin.html' %}
+{% load static %}
 
 {% block title %}Gerenciar Feitiços e Tarots - Painel Admin{% endblock %}
 
@@ -10,7 +11,7 @@
             <div class="flex items-center space-x-3">
                 <span class="text-3xl">🔮</span>
                 <div>
-                    <h1 class="text-xl font-bold text-purple-200">Feitiçaria Online</h1>
+                    <h1 class="text-xl font-bold text-purple-200">Raízes</h1>
                     <p class="text-xs text-purple-400">Painel Administrativo</p>
                 </div>
             </div>
@@ -99,29 +100,15 @@
                                         </span>
                                     </div>
                                     <p class="text-pink-400 font-bold mb-3">R$ {{ feitico.preco|floatformat:2 }}</p>
-                                    {% if feitico.descricao %}
-                                        <p class="text-purple-300 text-sm mb-4">{{ feitico.descricao }}</p>
-                                    {% endif %}
                                     <div class="flex gap-2">
-                                        <form method="post" action="{% url 'admin_gerenciar_produtos' %}" class="flex-1">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="tipo" value="feitico">
-                                            <input type="hidden" name="acao" value="editar">
-                                            <input type="hidden" name="id" value="{{ feitico.id }}">
-                                            <input type="hidden" name="nome" value="{{ feitico.nome }}">
-                                            <input type="hidden" name="emoji" value="{{ feitico.emoji }}">
-                                            <input type="hidden" name="preco" value="{{ feitico.preco }}">
-                                            <input type="hidden" name="descricao" value="{{ feitico.descricao }}">
-                                            <input type="hidden" name="ativo" value="{% if feitico.ativo %}true{% else %}false{% endif %}">
-                                            <button type="submit" class="w-full py-2 px-3 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 rounded text-sm transition">
-                                                ✏️ Editar
-                                            </button>
-                                        </form>
+                                        <button onclick="abrirModalEdicao('feitico', '{{ feitico.id }}', '{{ feitico.nome }}', '{{ feitico.emoji }}', '{{ feitico.preco }}', '{{ feitico.descricao }}', {{ feitico.ativo|yesno:'true,false' }})" class="flex-1 py-2 px-3 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 rounded text-sm transition">
+                                            ✏️ Editar
+                                        </button>
                                         <form method="post" action="{% url 'admin_gerenciar_produtos' %}" class="flex-1" onsubmit="return confirm('Tem certeza?')">
                                             {% csrf_token %}
                                             <input type="hidden" name="tipo" value="feitico">
                                             <input type="hidden" name="acao" value="deletar">
-                                            <input type="hidden" name="id" value="{{ feitico.id }}">
+                                            <input type="hidden" name="produto_id" value="{{ feitico.id }}">
                                             <button type="submit" class="w-full py-2 px-3 bg-red-600/30 hover:bg-red-600/50 text-red-300 rounded text-sm transition">
                                                 🗑️ Deletar
                                             </button>
@@ -136,7 +123,7 @@
                 </div>
 
                 <!-- ABA TAROTS -->
-                <div id="aba-tarots" class="space-y-6 hidden">
+                <div id="aba-tarots" class="hidden space-y-6">
                     <!-- Adicionar Tarot -->
                     <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-500/30 rounded-xl p-6">
                         <h2 class="text-2xl font-bold text-purple-200 mb-6">➕ Adicionar Tarot</h2>
@@ -197,29 +184,15 @@
                                         </span>
                                     </div>
                                     <p class="text-pink-400 font-bold mb-3">R$ {{ tarot.preco|floatformat:2 }}</p>
-                                    {% if tarot.descricao %}
-                                        <p class="text-purple-300 text-sm mb-4">{{ tarot.descricao }}</p>
-                                    {% endif %}
                                     <div class="flex gap-2">
-                                        <form method="post" action="{% url 'admin_gerenciar_produtos' %}" class="flex-1">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="tipo" value="tarot">
-                                            <input type="hidden" name="acao" value="editar">
-                                            <input type="hidden" name="id" value="{{ tarot.id }}">
-                                            <input type="hidden" name="nome" value="{{ tarot.nome }}">
-                                            <input type="hidden" name="emoji" value="{{ tarot.emoji }}">
-                                            <input type="hidden" name="preco" value="{{ tarot.preco }}">
-                                            <input type="hidden" name="descricao" value="{{ tarot.descricao }}">
-                                            <input type="hidden" name="ativo" value="{% if tarot.ativo %}true{% else %}false{% endif %}">
-                                            <button type="submit" class="w-full py-2 px-3 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 rounded text-sm transition">
-                                                ✏️ Editar
-                                            </button>
-                                        </form>
+                                        <button onclick="abrirModalEdicao('tarot', '{{ tarot.id }}', '{{ tarot.nome }}', '{{ tarot.emoji }}', '{{ tarot.preco }}', '{{ tarot.descricao }}', {{ tarot.ativo|yesno:'true,false' }})" class="flex-1 py-2 px-3 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 rounded text-sm transition">
+                                            ✏️ Editar
+                                        </button>
                                         <form method="post" action="{% url 'admin_gerenciar_produtos' %}" class="flex-1" onsubmit="return confirm('Tem certeza?')">
                                             {% csrf_token %}
                                             <input type="hidden" name="tipo" value="tarot">
                                             <input type="hidden" name="acao" value="deletar">
-                                            <input type="hidden" name="id" value="{{ tarot.id }}">
+                                            <input type="hidden" name="produto_id" value="{{ tarot.id }}">
                                             <button type="submit" class="w-full py-2 px-3 bg-red-600/30 hover:bg-red-600/50 text-red-300 rounded text-sm transition">
                                                 🗑️ Deletar
                                             </button>
@@ -237,22 +210,91 @@
     </div>
 </div>
 
+<!-- MODAL DE EDIÇÃO -->
+<div id="modal-edicao" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="bg-gradient-to-br from-purple-900 to-pink-900 border border-purple-500/30 rounded-2xl p-6 w-full max-w-lg shadow-2xl">
+        <div class="flex items-center justify-between mb-6">
+            <h2 id="modal-titulo" class="text-2xl font-bold text-purple-200">✏️ Editar Produto</h2>
+            <button onclick="fecharModalEdicao()" class="text-purple-400 hover:text-white transition text-2xl">&times;</button>
+        </div>
+        
+        <form method="post" action="{% url 'admin_gerenciar_produtos' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="editar">
+            <input type="hidden" id="edit-tipo" name="tipo" value="">
+            <input type="hidden" id="edit-id" name="produto_id" value="">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-purple-200 mb-2">Nome *</label>
+                    <input type="text" id="edit-nome" name="nome" required class="w-full px-4 py-3 bg-black/40 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-purple-200 mb-2">Emoji</label>
+                    <input type="text" id="edit-emoji" name="emoji" maxlength="2" class="w-full px-4 py-3 bg-black/40 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400 transition">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-purple-200 mb-2">Preço (R$) *</label>
+                    <input type="number" id="edit-preco" name="preco" step="0.01" required class="w-full px-4 py-3 bg-black/40 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-purple-200 mb-2">Status</label>
+                    <select id="edit-ativo" name="ativo" class="w-full px-4 py-3 bg-black/40 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400 transition" style="color-scheme: dark;">
+                        <option value="true">✓ Ativo</option>
+                        <option value="false">✕ Inativo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-purple-200 mb-2">Descrição</label>
+                <textarea id="edit-descricao" name="descricao" rows="3" class="w-full px-4 py-3 bg-black/40 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-400 transition"></textarea>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="fecharModalEdicao()" class="flex-1 py-3 px-4 bg-purple-900/50 hover:bg-purple-900/70 text-purple-200 font-bold rounded-lg transition">
+                    Cancelar
+                </button>
+                <button type="submit" class="flex-1 py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg shadow-lg shadow-purple-600/20 transition">
+                    Salvar Alterações
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function mostrarAba(aba) {
-    // Esconder todas as abas
     document.getElementById('aba-feiticos').classList.add('hidden');
     document.getElementById('aba-tarots').classList.add('hidden');
-    
-    // Remover classe ativa de todos os botões
     document.getElementById('btn-feiticos').classList.remove('border-purple-600', 'text-purple-200');
     document.getElementById('btn-feiticos').classList.add('border-transparent', 'text-purple-400', 'hover:text-purple-300');
     document.getElementById('btn-tarots').classList.remove('border-purple-600', 'text-purple-200');
     document.getElementById('btn-tarots').classList.add('border-transparent', 'text-purple-400', 'hover:text-purple-300');
     
-    // Mostrar aba selecionada
     document.getElementById('aba-' + aba).classList.remove('hidden');
     document.getElementById('btn-' + aba).classList.remove('border-transparent', 'text-purple-400', 'hover:text-purple-300');
     document.getElementById('btn-' + aba).classList.add('border-purple-600', 'text-purple-200');
+}
+
+function abrirModalEdicao(tipo, id, nome, emoji, preco, descricao, ativo) {
+    document.getElementById('modal-titulo').innerText = '✏️ Editar ' + (tipo === 'feitico' ? 'Feitiço' : 'Tarot');
+    document.getElementById('edit-tipo').value = tipo;
+    document.getElementById('edit-id').value = id;
+    document.getElementById('edit-nome').value = nome;
+    document.getElementById('edit-emoji').value = emoji;
+    document.getElementById('edit-preco').value = preco.replace(',', '.');
+    document.getElementById('edit-descricao').value = descricao;
+    document.getElementById('edit-ativo').value = ativo ? 'true' : 'false';
+    
+    document.getElementById('modal-edicao').classList.remove('hidden');
+}
+
+function fecharModalEdicao() {
+    document.getElementById('modal-edicao').classList.add('hidden');
 }
 </script>
 {% endblock %}

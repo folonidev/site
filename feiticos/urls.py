@@ -10,9 +10,13 @@ urlpatterns = [
     
     # URLs públicas - Agendamento
     path('agendar-produto/', views.agendar_produto, name='agendar_produto'),
-    path('pagamento/<int:pk>/', views.pagamento, name='pagamento'),
-    path('confirmar-pagamento/<int:pk>/', views.confirmar_pagamento, name='confirmar_pagamento'),
-    path('confirmacao/<int:pk>/', views.confirmacao, name='confirmacao'),
+    path('pagamento/<str:pk>/', views.pagamento, name='pagamento'),
+    path('confirmar-pagamento/<str:pk>/', views.confirmar_pagamento, name='confirmar_pagamento'),
+    path('pagamento-processando/', views.pagamento_processando, name='pagamento_processando'),
+    path('confirmacao/<str:pk>/', views.confirmacao, name='confirmacao'),
+    
+    # Webhook do Mercado Pago
+    path('webhook/mercado-pago/', views.webhook_mercado_pago, name='webhook_mercado_pago'),
     
     # URLs públicas - Acesso restrito para feitiços
     path('feiticos/<str:token>/', views.acessar_feiticos, name='comprar_feitico'),
@@ -26,7 +30,7 @@ urlpatterns = [
     path('painel/logout/', views.admin_logout, name='admin_logout'),
     path('painel/', views.admin_painel, name='admin_painel'),
     path('painel/agendamentos/', views.admin_agendamentos, name='admin_agendamentos'),
-    path('painel/agendamentos/<int:pk>/editar/', views.admin_editar_agendamento, name='admin_editar_agendamento'),
+    path('painel/agendamentos/<str:pk>/editar/', views.admin_editar_agendamento, name='admin_editar_agendamento'),
     path('painel/indisponibilidade/', views.admin_indisponibilidade, name='admin_indisponibilidade'),
     path('painel/gerenciar-produtos/', views.admin_gerenciar_produtos, name='admin_gerenciar_produtos'),
     path('admin/painel/', views.admin_painel, name='admin_dashboard'),  # Rota compatível

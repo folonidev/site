@@ -10,7 +10,7 @@
             <div class="flex items-center space-x-3">
                 <span class="text-3xl">🔮</span>
                 <div>
-                    <h1 class="text-xl font-bold text-purple-200">Feitiçaria Online</h1>
+                    <h1 class="text-xl font-bold text-purple-200">Raízes Tarot e Magia Ancestral</h1>
                     <p class="text-xs text-purple-400">Painel Administrativo</p>
                 </div>
             </div>
@@ -92,7 +92,7 @@
                                         <td class="py-4 px-4 text-purple-300">{{ ag.data_agendamento|date:"d/m/Y" }}</td>
                                         <td class="py-4 px-4 text-pink-400 font-semibold">R$ {{ ag.valor|floatformat:2 }}</td>
                                         <td class="py-4 px-4">
-                                            <span class="px-3 py-1 rounded-full text-xs font-semibold {% if ag.status == 'pagamento_confirmado' %}bg-green-600/30 text-green-300{% elif ag.status == 'pago' %}bg-green-600/30 text-green-300{% elif ag.status == 'enviar_link' %}bg-blue-600/30 text-blue-300{% elif ag.status == 'link_enviado' %}bg-blue-600/30 text-blue-300{% elif ag.status == 'realizado' %}bg-purple-600/30 text-purple-300{% elif ag.status == 'pendente' %}bg-yellow-600/30 text-yellow-300{% elif ag.status == 'cancelado' %}bg-red-600/30 text-red-300{% else %}bg-gray-600/30 text-gray-300{% endif %}">
+                                            <span class="px-3 py-1 rounded-full text-xs font-semibold {% if ag.status == 'pagamento_confirmado' %}bg-green-600/30 text-green-300{% elif ag.status == 'pago' %}bg-green-600/30 text-green-300{% elif ag.status == 'enviar_link' %}bg-blue-600/30 text-blue-300{% elif ag.status == 'link_enviado' %}bg-blue-600/30 text-blue-300{% elif ag.status == 'realizado' %}bg-purple-600/30 text-purple-300{% elif ag.status == 'pendente' %}bg-yellow-600/30 text-yellow-300{% elif ag.status == 'aguardando_ml' %}bg-yellow-600/30 text-yellow-300{% elif ag.status == 'pagamento_recusado' %}bg-red-600/30 text-red-300{% elif ag.status == 'cancelado' %}bg-red-600/30 text-red-300{% else %}bg-gray-600/30 text-gray-300{% endif %}">
                                                 {{ ag.get_status_display }}
                                             </span>
                                         </td>

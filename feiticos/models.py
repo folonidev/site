@@ -22,7 +22,7 @@ class TipoFeitico(models.Model):
     """Modelo para gerenciar tipos de feitiços e preços"""
     nome = models.CharField(max_length=150, unique=True)
     emoji = models.CharField(max_length=10, default='🔮')
-    preco = models.DecimalField(max_digits=10, decimal_places=2)
+    preco = models.FloatField()
     descricao = models.TextField(blank=True, null=True)
     ativo = models.BooleanField(default=True)
     criado_em = models.DateTimeField(auto_now_add=True)
@@ -30,7 +30,6 @@ class TipoFeitico(models.Model):
     class Meta:
         verbose_name = 'Tipo de Feitiço'
         verbose_name_plural = 'Tipos de Feitiços'
-        ordering = ['nome']
     
     def __str__(self):
         return f"{self.emoji} {self.nome} - R$ {self.preco:.2f}"
@@ -38,23 +37,34 @@ class TipoFeitico(models.Model):
     @staticmethod
     def obter_feiticos_disponiveis():
         """Retorna lista de feitiços ativos"""
-        return TipoFeitico.objects.filter(ativo=True).values('nome', 'emoji', 'preco')
+        feiticos = TipoFeitico.objects.all()
+        resultado = []
+        for f in feiticos:
+            if f.ativo:
+                try:
+                    preco = float(f.preco)
+                except (TypeError, ValueError):
+                    preco = float(f.preco.to_decimal())
+                resultado.append({'nome': f.nome, 'emoji': f.emoji, 'preco': preco})
+        return resultado
     
     @staticmethod
     def obter_preco(nome):
         """Obtém o preço de um tipo de feitiço"""
-        try:
-            feitico = TipoFeitico.objects.get(nome=nome, ativo=True)
-            return float(feitico.preco)
-        except TipoFeitico.DoesNotExist:
-            return 99.90
+        feitico = TipoFeitico.objects.filter(nome=nome).first()
+        if feitico and feitico.ativo:
+            try:
+                return float(feitico.preco)
+            except (TypeError, ValueError):
+                return float(feitico.preco.to_decimal())
+        return 99.90
 
 
 class TipoTarot(models.Model):
     """Modelo para gerenciar tipos de tarot e preços"""
     nome = models.CharField(max_length=150, unique=True)
     emoji = models.CharField(max_length=10, default='🔮')
-    preco = models.DecimalField(max_digits=10, decimal_places=2)
+    preco = models.FloatField()
     descricao = models.TextField(blank=True, null=True)
     ativo = models.BooleanField(default=True)
     criado_em = models.DateTimeField(auto_now_add=True)
@@ -62,7 +72,6 @@ class TipoTarot(models.Model):
     class Meta:
         verbose_name = 'Tipo de Tarot'
         verbose_name_plural = 'Tipos de Tarot'
-        ordering = ['nome']
     
     def __str__(self):
         return f"{self.emoji} {self.nome} - R$ {self.preco:.2f}"
@@ -70,7 +79,16 @@ class TipoTarot(models.Model):
     @staticmethod
     def obter_tarots_disponiveis():
         """Retorna lista de tarots ativos"""
-        return TipoTarot.objects.filter(ativo=True).values('nome', 'emoji', 'preco')
+        tarots = TipoTarot.objects.all()
+        resultado = []
+        for t in tarots:
+            if t.ativo:
+                try:
+                    preco = float(t.preco)
+                except (TypeError, ValueError):
+                    preco = float(t.preco.to_decimal())
+                resultado.append({'nome': t.nome, 'emoji': t.emoji, 'preco': preco})
+        return resultado
 
 
 class IndisponibilidadeFeitico(models.Model):
@@ -102,7 +120,9 @@ class Agendamento(models.Model):
     
     STATUS_CHOICES = [
         ('pendente', 'Pendente de Pagamento'),
+        ('aguardando_ml', 'Aguardando retorno ML'),
         ('pagamento_confirmado', 'Pagamento Confirmado'),
+        ('pagamento_recusado', 'Pagamento Recusado'),
         ('enviar_link', 'Enviar Link para Cliente'),
         ('link_enviado', 'Link Enviado'),
         ('realizado', 'Realizado'),
@@ -122,12 +142,16 @@ class Agendamento(models.Model):
     data_agendamento_original = models.DateField(blank=True, null=True, help_text="Data original do agendamento (para rastreabilidade)")
     
     # Pagamento e status
-    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    valor = models.FloatField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
     data_pagamento = models.DateTimeField(blank=True, null=True)
     
     # Link de acesso restrito (para feitiços após aprovação da intenção)
-    token_acesso = models.CharField(max_length=100, unique=True, blank=True, null=True)
+    token_acesso = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Mercado Pago
+    external_reference = models.CharField(max_length=100, blank=True, null=True, unique=True, help_text="ID externo do Mercado Pago para rastreamento")
+    mercado_pago_payment_id = models.CharField(max_length=100, blank=True, null=True, help_text="ID do pagamento no Mercado Pago")
     
     # Relacionamento com intenção (para feitiços)
     intencao_relacionada = models.ForeignKey(
@@ -179,22 +203,23 @@ class Agendamento(models.Model):
     @staticmethod
     def contar_vagas_usadas(data, tipo_produto):
         """Conta quantas vagas foram usadas em uma data"""
-        return Agendamento.objects.filter(
-            data_agendamento=data,
-            tipo_produto=tipo_produto,
-            status__in=['pagamento_confirmado', 'pago', 'enviar_link', 'link_enviado', 'realizado']
-        ).count()
+        # No MongoDB/Djongo, filtros de data e status__in podem ser instáveis
+        # Buscamos todos os agendamentos daquela data e filtramos via Python para garantir estabilidade
+        agendamentos = Agendamento.objects.filter(data_agendamento=data)
+        count = 0
+        status_validos = ['pagamento_confirmado', 'pago', 'enviar_link', 'link_enviado', 'realizado']
+        for ag in agendamentos:
+            if ag.tipo_produto == tipo_produto and ag.status in status_validos:
+                count += 1
+        return count
     
     @staticmethod
     def verificar_vagas_disponiveis(data, tipo_produto):
         """Verifica se há vagas disponíveis para um tipo de produto em uma data"""
-        # Verificar indisponibilidade
-        try:
-            indisp = IndisponibilidadeFeitico.objects.get(data=data)
-            if indisp.indisponivel:
-                return False, "Este dia está indisponível"
-        except IndisponibilidadeFeitico.DoesNotExist:
-            pass
+        # Verificar indisponibilidade - Usando filter().first() para ser mais resiliente
+        indisp = IndisponibilidadeFeitico.objects.filter(data=data).first()
+        if indisp and indisp.indisponivel:
+            return False, "Este dia está indisponível"
         
         # Tarot de acompanhamento: APENAS SEXTA (dia 4)
         if tipo_produto == 'tarot_acompanhamento':
@@ -229,3 +254,49 @@ class Agendamento(models.Model):
             return True, f"{vagas_disponiveis} vagas disponíveis"
         
         return False, "Tipo de produto inválido"
+
+
+class WebhookMercadoPago(models.Model):
+    """Modelo para armazenar webhooks recebidos do Mercado Pago"""
+    
+    STATUS_WEBHOOK_CHOICES = [
+        ('recebido', 'Recebido'),
+        ('processado', 'Processado'),
+        ('erro', 'Erro'),
+    ]
+    
+    # Dados do webhook
+    external_reference = models.CharField(max_length=100, help_text="ID externo do agendamento")
+    payment_id = models.CharField(max_length=100, blank=True, null=True)
+    topic = models.CharField(max_length=50, help_text="Tipo de notificação (payment, merchant_order, etc)")
+    
+    # Status do pagamento no MP
+    payment_status = models.CharField(max_length=50, blank=True, null=True, help_text="Status do pagamento (approved, pending, rejected, etc)")
+    
+    # Dados brutos do webhook
+    payload = models.JSONField(help_text="Payload completo do webhook")
+    
+    # Status de processamento
+    status = models.CharField(max_length=20, choices=STATUS_WEBHOOK_CHOICES, default='recebido')
+    erro_mensagem = models.TextField(blank=True, null=True)
+    
+    # Relacionamento com agendamento
+    agendamento = models.ForeignKey(
+        Agendamento,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='webhooks_mercado_pago'
+    )
+    
+    # Timestamps
+    criado_em = models.DateTimeField(auto_now_add=True)
+    processado_em = models.DateTimeField(blank=True, null=True)
+    
+    class Meta:
+        verbose_name = 'Webhook Mercado Pago'
+        verbose_name_plural = 'Webhooks Mercado Pago'
+        ordering = ['-criado_em']
+    
+    def __str__(self):
+        return f"Webhook {self.topic} - {self.external_reference} ({self.status})"
