@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 import json
 import uuid
 
+from .email_utils import enviar_email_confirmacao_pagamento
+
 from .models import Agendamento, TipoFeitico, TipoTarot, IndisponibilidadeFeitico, WebhookMercadoPago
 from .mercado_pago_utils import (
     criar_preferencia_mercado_pago,
@@ -842,6 +844,7 @@ def pagamento_processando(request):
 @require_http_methods(["POST"])
 def webhook_mercado_pago(request):
     """Endpoint para receber webhooks do Mercado Pago"""
+    send_mail = None
     try:        
         # Extrair dados do webhook
         payload = json.loads(request.body)
@@ -874,24 +877,21 @@ def webhook_mercado_pago(request):
                     agendamento.status = novo_status
                     agendamento.mercado_pago_payment_id = data_id
                     
-                    # Enviar email SEMPRE, independentemente do status
-                    from .email_utils import enviar_email_confirmacao_pagamento
-                    
                     if novo_status == 'pagamento_confirmado':
                         agendamento.data_pagamento = datetime.now()
                         # Se for intenção, gerar token de acesso
                         if agendamento.tipo_produto == 'intencao_feitico':
                             agendamento.gerar_token_acesso()
                         # Enviar email de sucesso
-                        enviar_email_confirmacao_pagamento(agendamento, 'approved')
+                        send_mail = 'approved'
                     
                     elif novo_status == 'pendente':
                         # Enviar email de processando
-                        enviar_email_confirmacao_pagamento(agendamento, 'pending')
+                        send_mail = 'pending'
                     
                     elif novo_status == 'pagamento_recusado':
                         # Enviar email de falha
-                        enviar_email_confirmacao_pagamento(agendamento, 'rejected')
+                        send_mail = 'rejected'
                     
                     agendamento.save()
                     # Salvar webhook APENAS se processado com sucesso
@@ -905,6 +905,10 @@ def webhook_mercado_pago(request):
                         processado_em=datetime.now()
                     )
                     print(f"[WEBHOOK] Webhook salvo com sucesso")
+                    if send_mail:
+                        # Envia email só aqui
+                        print(f"[WEBHOOK] Email de status '{send_mail}' enviado para {agendamento.email}")
+                        enviar_email_confirmacao_pagamento(agendamento, send_mail)
                 else:
                     print(f"[WEBHOOK] Agendamento nao encontrado para external_reference: {external_reference}")
             else:
