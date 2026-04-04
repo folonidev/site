@@ -182,9 +182,10 @@ class Agendamento(models.Model):
         return f"{self.nome} - {self.tipo_produto} ({self.data_agendamento})"
     
     def gerar_token_acesso(self):
-        """Gera um token de acesso único"""
-        self.token_acesso = str(uuid.uuid4())
-        self.save()
+        """Gera um token de acesso único apenas se ainda não existir um"""
+        if not self.token_acesso:
+            self.token_acesso = str(uuid.uuid4())
+            self.save()
         return self.token_acesso
     
     def marcar_como_pago(self):
