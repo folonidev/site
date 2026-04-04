@@ -78,10 +78,11 @@
                                             <p class="text-white font-semibold">{{ indisp.data|date:'d/m/Y' }}</p>
                                             <p class="text-red-400 text-sm">🚫 Bloqueado</p>
                                         </div>
-                                        <form method="post" class="inline">
+                                        <form method="post" class="inline" onsubmit="return confirm('Deseja desbloquear esta data?')">
                                             {% csrf_token %}
                                             <input type="hidden" name="action" value="deletar">
                                             <input type="hidden" name="id" value="{{ indisp.id }}">
+                                            <input type="hidden" name="data_valor" value="{{ indisp.data|date:'Y-m-d' }}">
                                             <button type="submit" class="text-red-400 hover:text-red-300 transition font-semibold">
                                                 ✕
                                             </button>

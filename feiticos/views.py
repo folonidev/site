@@ -607,26 +607,50 @@ def admin_editar_agendamento(request, pk):
 def admin_indisponibilidade(request):
     """Gerenciar indisponibilidade"""
     if request.method == 'POST':
-        data_str = request.POST.get('data')
+        action = request.POST.get('action')
         
-        if data_str:
-            try:
-                data = datetime.strptime(data_str, '%Y-%m-%d').date()
-                
-                # Verificar se já existe
-                indisp, created = IndisponibilidadeFeitico.objects.get_or_create(data=data)
-                if created:
-                    indisp.indisponivel = True
-                    indisp.save()
-                    messages.success(request, 'Data marcada como indisponível!')
-                else:
-                    # Toggle: se já existe, inverte o status
-                    indisp.indisponivel = not indisp.indisponivel
-                    indisp.save()
-                    status = 'indisponível' if indisp.indisponivel else 'disponível'
-                    messages.success(request, f'Data marcada como {status}!')
-            except ValueError:
-                messages.error(request, 'Data inválida.')
+        if action == 'deletar':
+            # Deletar indisponibilidade
+            indisp_id = request.POST.get('id')
+            if indisp_id:
+                try:
+                    indisp = IndisponibilidadeFeitico.objects.get(data=request.POST.get('data_valor'))
+                    data_formatada = indisp.data.strftime('%d/%m/%Y')
+                    indisp.delete()
+                    messages.success(request, f'Data {data_formatada} desbloqueada com sucesso!')
+                except IndisponibilidadeFeitico.DoesNotExist:
+                    # Fallback: tentar deletar por filtro
+                    try:
+                        IndisponibilidadeFeitico.objects.filter(pk=indisp_id).delete()
+                        messages.success(request, 'Data desbloqueada com sucesso!')
+                    except Exception as e:
+                        print(f'[INDISPONIBILIDADE] Erro ao deletar: {e}')
+                        messages.error(request, 'Erro ao desbloquear data.')
+                except Exception as e:
+                    print(f'[INDISPONIBILIDADE] Erro ao deletar: {e}')
+                    messages.error(request, 'Erro ao desbloquear data.')
+        else:
+            # Adicionar indisponibilidade
+            data_str = request.POST.get('data')
+            
+            if data_str:
+                try:
+                    data = datetime.strptime(data_str, '%Y-%m-%d').date()
+                    
+                    # Verificar se já existe
+                    indisp, created = IndisponibilidadeFeitico.objects.get_or_create(data=data)
+                    if created:
+                        indisp.indisponivel = True
+                        indisp.save()
+                        messages.success(request, 'Data marcada como indisponível!')
+                    else:
+                        # Toggle: se já existe, inverte o status
+                        indisp.indisponivel = not indisp.indisponivel
+                        indisp.save()
+                        status = 'indisponível' if indisp.indisponivel else 'disponível'
+                        messages.success(request, f'Data marcada como {status}!')
+                except ValueError:
+                    messages.error(request, 'Data inválida.')
     
     indisponibilidades = IndisponibilidadeFeitico.objects.all().order_by('-data')
     
@@ -818,63 +842,28 @@ def pagamento_processando(request):
 @require_http_methods(["POST"])
 def webhook_mercado_pago(request):
     """Endpoint para receber webhooks do Mercado Pago"""
-    try:
-        # 🔍 DEBUG: Imprimir o body completo do webhook
-        print("\n" + "="*80)
-        print("[WEBHOOK] BODY RECEBIDO DO MERCADO PAGO:")
-        print("="*80)
-        print(request.body.decode('utf-8'))
-        print("="*80 + "\n")
-        
+    try:        
         # Extrair dados do webhook
         payload = json.loads(request.body)
         
         # Extrair informações relevantes
         topic = payload.get('topic')
-        resource = payload.get('resource')
         # Tentar extrair data_id de diferentes formatos de webhook
         data_id = payload.get('data', {}).get('id') or payload.get('resource')
         
-        print("\n" + "="*80)
-        print(f"[WEBHOOK] EXTRACOES INICIAIS:")
-        print(f"  - topic: {topic}")
-        print(f"  - resource: {resource}")
-        print(f"  - data_id (final): {data_id}")
-        print("="*80 + "\n")
+        print(f" webhook recebido - topic: {topic} com data_id {data_id}")
         
         # Se for notificação de pagamento
         if topic == 'payment' and data_id:
             
-            # Verificar status do pagamento via GET
-            print("\n" + "="*80)
-            print(f"[WEBHOOK] CHAMANDO verificar_status_pagamento com payment_id: {data_id}")
-            print("="*80 + "\n")
-            
             payment_data = verificar_status_pagamento(data_id)
-            
-            print("\n" + "="*80)
-            print(f"[WEBHOOK] RESPOSTA COMPLETA DO MERCADO PAGO:")
-            print("="*80)
-            print(f"payment_data = {payment_data}")
-            print("="*80 + "\n")
-            
+
             if payment_data:
-                # 🔍 DEBUG: Imprimir TODOS os campos
-                print("\n" + "="*80)
-                print(f"[WEBHOOK] TODOS OS CAMPOS:")
-                for key, value in payment_data.items():
-                    print(f"  {key}: {value}")
-                print("="*80 + "\n")
                 
                 external_reference = payment_data.get('external_reference')
+                if not external_reference:
+                    print(f"[WEBHOOK] ATENÇÃO: external_reference não encontrado no payment_data para data_id {data_id}")
                 payment_status = payment_data.get('status')
-                
-                # 🔍 DEBUG: Imprimir extracoes de dados
-                print("\n" + "="*80)
-                print(f"[WEBHOOK] EXTRACAO DE DADOS:")
-                print(f"  - external_reference: {external_reference}")
-                print(f"  - payment_status: {payment_status}")
-                print("="*80 + "\n")
                 
                 # Encontrar agendamento
                 agendamento = Agendamento.objects.filter(external_reference=external_reference).first()
