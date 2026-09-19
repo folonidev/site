@@ -56,6 +56,9 @@
                 </div>
                 <a class="new-link" href="{% url 'shortener' %}"><i class="fa-solid fa-plus"></i> Criar outro link</a>
             {% else %}
+                {% if limit_reached %}
+                    <div class="limit-message" role="alert"><i class="fa-solid fa-circle-info"></i><span>O encurtador chegou ao limite de 100 links. Em breve haverá espaço para novos atalhos.</span></div>
+                {% endif %}
                 <form method="post" novalidate>
                     {% csrf_token %}
                     <div class="form-group">

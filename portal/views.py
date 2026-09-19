@@ -1,10 +1,14 @@
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from urllib.parse import urlparse
 
-from .models import ShortenedURL
+from .models import ShortenedURL, ShortenerQuota
+
+
+MAX_SHORTENED_URLS = 100
 
 
 def normalize_destination_url(value):
@@ -36,11 +40,19 @@ def shortener(request):
             context['destination_url'] = destination_url
             context['short_code'] = short_code
         else:
-            link.save()
-            short_url = request.build_absolute_uri(
-                reverse('follow_short_url', kwargs={'short_code': link.short_code})
-            )
-            return render(request, 'shortener.html', {'short_url': short_url})
+            # Serializa contagem e gravação, evitando exceder 100 sob concorrência.
+            with transaction.atomic():
+                ShortenerQuota.objects.select_for_update().get(pk=1)
+                if ShortenedURL.objects.count() >= MAX_SHORTENED_URLS:
+                    context['limit_reached'] = True
+                    context['destination_url'] = destination_url
+                    context['short_code'] = short_code
+                else:
+                    link.save()
+                    short_url = request.build_absolute_uri(
+                        reverse('follow_short_url', kwargs={'short_code': link.short_code})
+                    )
+                    return render(request, 'shortener.html', {'short_url': short_url})
 
     return render(request, 'shortener.html', context)
 

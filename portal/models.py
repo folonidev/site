@@ -42,3 +42,13 @@ class ShortenedURL(models.Model):
             raise ValidationError({
                 'destination_url': 'Informe uma URL HTTP ou HTTPS válida.'
             })
+
+
+class ShortenerQuota(models.Model):
+    """Linha única usada para serializar a criação de links públicos."""
+
+    id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
+
+    class Meta:
+        verbose_name = 'trava do encurtador'
+        verbose_name_plural = 'trava do encurtador'
