@@ -1001,6 +1001,10 @@ button {
     grid-template-columns: 1.2fr 1fr;
 }
 
+.foloni-store-project {
+    order: -1;
+}
+
 .portfolio-image {
     position: relative;
     overflow: hidden;
