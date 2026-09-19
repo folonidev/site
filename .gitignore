@@ -99,6 +99,9 @@ dmypy.json
 
 # VS Code
 .vscode/
+!.vscode/
+!.vscode/launch.json
+!.vscode/settings.json
 
 # macOS
 .DS_Store
@@ -112,3 +115,4 @@ Desktop.ini
 *.pyc
 
 staticfiles/ 
+.env

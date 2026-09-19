@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Crie links curtos, memoráveis e fáceis de compartilhar.">
+    <link rel="icon" href="{% static 'images/favicon.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/shortener.css' %}">
+    <title>Encurtador de URL | Gabriel Foloni</title>
+</head>
+<body class="shortener-page">
+    <div class="cursor-glow" id="cursorGlow"></div>
+    <nav class="navbar shortener-navbar">
+        <div class="nav-container">
+            <a href="{% url 'home' %}" class="nav-logo" aria-label="Voltar para a página inicial">
+                <span class="logo-bracket">&lt;</span>GF<span class="logo-bracket"> /&gt;</span>
+            </a>
+            <a href="{% url 'home' %}" class="back-home"><i class="fa-solid fa-arrow-left"></i> Início</a>
+        </div>
+    </nav>
+
+    <main class="shortener-main">
+        <section class="shortener-hero">
+            <span class="section-tag">&lt;encurtador_de_url /&gt;</span>
+            <h1>Links menores.<br><span>Menos atrito.</span></h1>
+            <p>Criei esta ferramenta para resolver uma dor bem cotidiana: compartilhar links profissionais — ou mandar algo para um dispositivo onde digitar uma URL enorme é uma pequena tortura.</p>
+            <p>Escolha um atalho fácil de lembrar e deixe o caminho até seu destino mais simples.</p>
+        </section>
+
+        <section class="shortener-card" aria-labelledby="form-title">
+            <div class="card-heading">
+                <div class="card-icon"><i class="fa-solid fa-link"></i></div>
+                <div>
+                    <span class="eyebrow">SEU NOVO ATALHO</span>
+                    <h2 id="form-title">Vamos encurtar?</h2>
+                </div>
+            </div>
+
+            {% if short_url %}
+                <div class="success-state" role="status">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <div>
+                        <strong>Seu link está pronto.</strong>
+                        <p>Agora é só copiar e compartilhar.</p>
+                    </div>
+                </div>
+                <div class="result-url">
+                    <code id="shortUrl">{{ short_url }}</code>
+                    <button type="button" id="copyButton" aria-label="Copiar link"><i class="fa-regular fa-copy"></i><span>Copiar</span></button>
+                </div>
+                <a class="new-link" href="{% url 'shortener' %}"><i class="fa-solid fa-plus"></i> Criar outro link</a>
+            {% else %}
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="destination_url">Para onde esse link deve levar?</label>
+                        <div class="input-wrap"><i class="fa-solid fa-arrow-up-right-from-square"></i><input type="text" inputmode="url" id="destination_url" name="destination_url" placeholder="google.com ou https://seu-link.com" value="{{ destination_url|default:'' }}" required autofocus></div>
+                        {% if errors.destination_url %}<p class="field-error">{{ errors.destination_url.0 }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="short_code">Qual atalho você quer usar?</label>
+                        <div class="shortcut-input">
+                            <span>/e/</span><input type="text" id="short_code" name="short_code" placeholder="meu-link" value="{{ short_code|default:'' }}" minlength="3" maxlength="64" pattern="[A-Za-z0-9_-]{3,64}" required>
+                        </div>
+                        <p class="field-help">De 3 a 64 caracteres: letras, números, hífen ou sublinhado.</p>
+                        {% if errors.short_code %}<p class="field-error">{{ errors.short_code.0 }}</p>{% endif %}
+                    </div>
+                    <button class="create-button" type="submit">Criar link curto <i class="fa-solid fa-arrow-right"></i></button>
+                </form>
+            {% endif %}
+        </section>
+    </main>
+
+    <footer class="shortener-footer">Feito por <a href="{% url 'home' %}">Gabriel Foloni</a> para tornar o simples ainda mais simples.</footer>
+    {% if short_url %}<script>
+        document.getElementById('copyButton').addEventListener('click', async function () {
+            await navigator.clipboard.writeText(document.getElementById('shortUrl').textContent.trim());
+            this.innerHTML = '<i class="fa-solid fa-check"></i><span>Copiado</span>';
+        });
+    </script>{% endif %}
+</body>
+</html>
